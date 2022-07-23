@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"go-loyalty-system/internal/models"
+	"go-loyalty-system/internal/storage"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
 	"time"
@@ -11,25 +14,35 @@ import (
 
 var jwtKey = []byte("my_secret_key0")
 
-type User struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
 type Claims struct {
 	User string
 	jwt.StandardClaims
 }
 
-func login(db interface{}) func(http.ResponseWriter, *http.Request) {
+func login(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var user User
+		var user models.User
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		// ToDo: Validate user
+		dbUser, err := db.GetUser(user.Login)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		hashUser, err := hashPassword(user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(hashUser.Password)); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		if token, err := getToken(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -39,12 +52,24 @@ func login(db interface{}) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func register(db interface{}) func(http.ResponseWriter, *http.Request) {
+func register(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// ToDo: Save user
-		user := User{
-			Login:    "test",
-			Password: "testpwd",
+		var user models.User
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		user.Password = string(hash)
+		if err = db.AddUser(user); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		if token, err := getToken(user); err != nil {
@@ -55,7 +80,7 @@ func register(db interface{}) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func getToken(user User) (string, error) {
+func getToken(user models.User) (string, error) {
 	exp := time.Now().Add(1 * time.Hour)
 	claims := &Claims{
 		User: user.Login,
@@ -66,6 +91,17 @@ func getToken(user User) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
+}
+
+func hashPassword(user models.User) (models.User, error) {
+	if hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost); err != nil {
+		return models.User{}, err
+	} else {
+		return models.User{
+			Login:    user.Login,
+			Password: string(hash),
+		}, nil
+	}
 }
 
 func auth(next http.Handler) http.Handler {
