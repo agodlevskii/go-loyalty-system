@@ -3,15 +3,16 @@ package handlers
 import (
 	"github.com/go-chi/chi/v5"
 	"go-loyalty-system/internal/storage"
+	"go-loyalty-system/user/auth"
 )
 
 func NewRouter(db storage.Repo) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(auth)
+	r.Use(auth.AuthMiddleware([]string{`/api/user/login`, `/api/user/register`}))
 
 	r.Route(`/api/user`, func(r chi.Router) {
-		r.Post(`/login`, login(db.User))
-		r.Post(`/register`, register(db.User))
+		r.Post(`/login`, auth.Login(db.User))
+		r.Post(`/register`, auth.Register(db.User))
 
 		r.Route(`/orders`, func(r chi.Router) {
 			r.Get(`/`, getOrders(db))

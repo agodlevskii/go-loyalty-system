@@ -3,12 +3,9 @@ package storage
 import (
 	"database/sql"
 	"go-loyalty-system/internal/models"
+	"go-loyalty-system/user"
+	"go-loyalty-system/user/storage"
 )
-
-type UserStorage interface {
-	AddUser(user models.User) error
-	GetUser(name string) (models.User, error)
-}
 
 type OrderStorage interface {
 	AddOrder(order models.Order) error
@@ -28,7 +25,7 @@ type WithdrawalStorage interface {
 }
 
 type Repo struct {
-	User       UserStorage
+	User       user.Storage
 	Balance    BalanceStorage
 	Order      OrderStorage
 	Withdrawal WithdrawalStorage
@@ -44,7 +41,7 @@ func NewDBRepo(url, driver string) (Repo, error) {
 		return Repo{}, err
 	}
 
-	user, err := NewDBUser(db)
+	user, err := storage.NewDBUserStorage(db)
 	if err != nil {
 		return Repo{}, err
 	}
