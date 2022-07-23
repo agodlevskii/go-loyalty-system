@@ -1,12 +1,14 @@
-package handlers
+package internal
 
 import (
 	"github.com/go-chi/chi/v5"
-	"go-loyalty-system/internal/storage"
+	"go-loyalty-system/balance"
+	"go-loyalty-system/order"
 	"go-loyalty-system/user/auth"
+	"go-loyalty-system/withdrawal"
 )
 
-func NewRouter(db storage.Repo) *chi.Mux {
+func NewRouter(db Repo) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(auth.AuthMiddleware([]string{`/api/user/login`, `/api/user/register`}))
 
@@ -15,14 +17,14 @@ func NewRouter(db storage.Repo) *chi.Mux {
 		r.Post(`/register`, auth.Register(db.User))
 
 		r.Route(`/orders`, func(r chi.Router) {
-			r.Get(`/`, getOrders(db))
-			r.Post(`/`, updateOrders(db))
+			r.Get(`/`, order.GetOrders(db.Order))
+			r.Post(`/`, order.UpdateOrders(db.Order))
 		})
 
 		r.Route(`/balance`, func(r chi.Router) {
-			r.Get(`/`, getBalance(db))
-			r.Post(`/withdraw`, withdraw(db))
-			r.Get(`/withdrawals`, getWithdrawals(db))
+			r.Get(`/`, balance.GetBalance(db.Balance))
+			r.Post(`/withdraw`, withdrawal.Withdraw(db.Withdrawal))
+			r.Get(`/withdrawals`, withdrawal.GetWithdrawals(db.Withdrawal))
 		})
 	})
 

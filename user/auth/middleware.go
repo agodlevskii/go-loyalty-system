@@ -38,30 +38,3 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 		})
 	}
 }
-
-func auth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.URL.Path, `/login`) || strings.Contains(r.URL.Path, `/register`) {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		tknHdr := r.Header.Get(`Authorization`)
-		if tknHdr == `` {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		tknStr := strings.Split(tknHdr, `Bearer `)[1]
-		if valid, err := isTokenValid(tknStr); err != nil || !valid {
-			if errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
-				w.WriteHeader(http.StatusUnauthorized)
-			} else {
-				w.WriteHeader(http.StatusBadRequest)
-			}
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
