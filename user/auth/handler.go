@@ -52,12 +52,14 @@ func Register(db user.Storage) func(http.ResponseWriter, *http.Request) {
 
 		hash, err := hashPassword(reqUser.Password)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		reqUser.Password = hash
 		if err = db.AddUser(reqUser); err != nil {
+			log.Println(err)
 			if errors.Is(err, sql.ErrNoRows) {
 				w.WriteHeader(http.StatusConflict)
 			} else {
