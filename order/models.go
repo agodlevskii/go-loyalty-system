@@ -5,10 +5,11 @@ type Order struct {
 	Status     string `json:"status"`
 	Accrual    string `json:"accrual"`
 	UploadedAt string `json:"uploaded_at"`
+	User       string
 }
 
 type Storage interface {
-	AddOrder(order Order) error
-	GetOrder(number string) (Order, error)
-	GetOrders(user string) ([]Order, error)
+	Add(order Order) error
+	Find(number string) (Order, error)
+	FindAll(user string) ([]Order, error)
 }

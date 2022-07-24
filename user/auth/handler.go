@@ -18,9 +18,8 @@ func Login(db user.Storage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		dbUser, err := db.GetUser(reqUser.Login)
+		dbUser, err := db.Find(reqUser.Login)
 		if err != nil {
-			log.Println(err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -37,6 +36,7 @@ func Login(db user.Storage) func(http.ResponseWriter, *http.Request) {
 		if token, err := getToken(reqUser); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
+			w.Header().Set(`Authorization`, getBearer(token))
 			w.Write([]byte(token))
 		}
 	}
@@ -58,8 +58,7 @@ func Register(db user.Storage) func(http.ResponseWriter, *http.Request) {
 		}
 
 		reqUser.Password = hash
-		if err = db.AddUser(reqUser); err != nil {
-			log.Println(err)
+		if err = db.Add(reqUser); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				w.WriteHeader(http.StatusConflict)
 			} else {
@@ -71,6 +70,7 @@ func Register(db user.Storage) func(http.ResponseWriter, *http.Request) {
 		if token, err := getToken(reqUser); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
+			w.Header().Set(`Authorization`, getBearer(token))
 			w.Write([]byte(token))
 		}
 	}

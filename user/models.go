@@ -6,6 +6,6 @@ type User struct {
 }
 
 type Storage interface {
-	AddUser(user User) error
-	GetUser(name string) (User, error)
+	Add(user User) error
+	Find(name string) (User, error)
 }

@@ -24,9 +24,8 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 			}
 
 			tknStr := strings.Split(tknHdr, `Bearer `)[1]
-			claims := &Claims{}
-			if tkn, err := jwt.ParseWithClaims(tknStr, claims, keyFn); err != nil || !tkn.Valid {
-				if errors.Is(err, jwt.ErrSignatureInvalid) || !tkn.Valid {
+			if valid, err := isTokenValid(tknStr); err != nil || !valid {
+				if errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
 					w.WriteHeader(http.StatusUnauthorized)
 				} else {
 					w.WriteHeader(http.StatusBadRequest)

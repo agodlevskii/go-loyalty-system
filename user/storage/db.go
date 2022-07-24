@@ -15,12 +15,12 @@ func NewDBUserStorage(db *sql.DB) (DBUser, error) {
 	return DBUser{db: db}, err
 }
 
-func (r DBUser) AddUser(user user.User) error {
+func (r DBUser) Add(user user.User) error {
 	var name string
 	return r.db.QueryRow(`INSERT INTO users (name, password) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING name`, user.Login, user.Password).Scan(&name)
 }
 
-func (r DBUser) GetUser(name string) (user.User, error) {
+func (r DBUser) Find(name string) (user.User, error) {
 	dbUser := user.User{Login: name}
 	err := r.db.QueryRow(`SELECT password FROM users WHERE name = $1`, dbUser.Login).Scan(&dbUser.Password)
 	return dbUser, err

@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"go-loyalty-system/user"
+	"strings"
 	"time"
 )
 
@@ -34,4 +36,17 @@ func isTokenValid(tokenStr string) (bool, error) {
 
 func keyFn(token *jwt.Token) (interface{}, error) {
 	return jwtKey, nil
+}
+
+func getBearer(token string) string {
+	return `Bearer ` + token
+}
+
+func getTokenFromBearer(bearer string) (string, error) {
+	res := strings.Split(bearer, `Bearer `)
+	if len(res) != 2 || res[0] != `` {
+		return ``, errors.New(`incorrect token format`)
+	}
+
+	return res[1], nil
 }
