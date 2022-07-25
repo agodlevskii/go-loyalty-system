@@ -31,6 +31,9 @@ func (r DBWithdrawal) FindAll(user string) ([]withdrawal.Withdrawal, error) {
 	if err != nil {
 		return nil, err
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 
 	for rows.Next() {
 		var w withdrawal.Withdrawal

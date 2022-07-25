@@ -31,6 +31,9 @@ func (r DBOrder) FindAll(user string) ([]order.Order, error) {
 	if err != nil {
 		return nil, err
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 
 	for rows.Next() {
 		var o order.Order
