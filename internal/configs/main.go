@@ -7,7 +7,7 @@ import (
 
 type Config struct {
 	Addr       string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
-	DBURL      string `env:"DATABASE_URI"`
+	DBURL      string `env:"DATABASE_URI" envDefault:"postgres://yand:yand@localhost:5432/practicum"`
 	AccrualURL string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 }
 

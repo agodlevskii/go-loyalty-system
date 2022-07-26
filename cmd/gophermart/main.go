@@ -1,18 +1,23 @@
 package main
 
 import (
+	"go-loyalty-system/internal"
 	"go-loyalty-system/internal/configs"
-	"go-loyalty-system/internal/handlers"
 	"log"
 	"net/http"
 )
 
 func main() {
-	r := handlers.NewRouter(nil)
 	cfg, err := configs.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	db, err := internal.NewDBRepo(cfg.DBURL, ``)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := internal.NewRouter(db)
 	log.Fatal(http.ListenAndServe(cfg.Addr, r))
 }
