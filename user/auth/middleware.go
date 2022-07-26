@@ -45,7 +45,7 @@ func Middleware(excludedPath []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), `user`, user.Login)
+			ctx := context.WithValue(r.Context(), `username`, user.Login)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -19,7 +19,7 @@ func GetOrders(db Storage) func(http.ResponseWriter, *http.Request) {
 
 func UpdateOrders(db Storage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := r.Context().Value(`user`).(string)
+		user, ok := r.Context().Value(`username`).(string)
 		if !ok || user == `` {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
