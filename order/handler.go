@@ -1,6 +1,7 @@
 package order
 
 import (
+	"go-loyalty-system/user"
 	"io"
 	"net/http"
 	"time"
@@ -19,8 +20,8 @@ func GetOrders(db Storage) func(http.ResponseWriter, *http.Request) {
 
 func UpdateOrders(db Storage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := r.Context().Value(`username`).(string)
-		if !ok || user == `` {
+		usr, ok := r.Context().Value(user.Key).(string)
+		if !ok || usr == `` {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -41,7 +42,7 @@ func UpdateOrders(db Storage) func(http.ResponseWriter, *http.Request) {
 			Status:     StatusNew,
 			Accrual:    0,
 			UploadedAt: time.Now().Round(time.Microsecond),
-			User:       user,
+			User:       usr,
 		})
 
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"go-loyalty-system/user"
 	"net/http"
 	"strings"
 )
@@ -39,13 +40,13 @@ func Middleware(excludedPath []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			user, err := getUserFromToken(tknStr)
+			usr, err := getUserFromToken(tknStr)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), `username`, user.Login)
+			ctx := context.WithValue(r.Context(), user.Key, usr.Login)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
