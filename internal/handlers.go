@@ -10,7 +10,7 @@ import (
 
 func NewRouter(db Repo) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(auth.AuthMiddleware([]string{`/api/user/login`, `/api/user/register`}))
+	r.Use(auth.Middleware([]string{`/api/user/login`, `/api/user/register`}))
 
 	r.Route(`/api/user`, func(r chi.Router) {
 		r.Post(`/login`, auth.Login(db.User))

@@ -33,7 +33,7 @@ func Login(db user.Storage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if token, err := getToken(reqUser); err != nil {
+		if token, err := getTokenFromUser(reqUser); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
 			w.Header().Set(`Authorization`, getBearer(token))
@@ -67,7 +67,7 @@ func Register(db user.Storage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if token, err := getToken(reqUser); err != nil {
+		if token, err := getTokenFromUser(reqUser); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
 			w.Header().Set(`Authorization`, getBearer(token))
