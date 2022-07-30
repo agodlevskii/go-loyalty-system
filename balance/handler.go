@@ -46,7 +46,7 @@ func GetWithdrawals(db WithdrawalStorage) func(http.ResponseWriter, *http.Reques
 	}
 }
 
-func Withdraw(bs AccountStorage, ws WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
+func Withdraw(as AccountStorage, ws WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var wr Withdrawal
 		u := r.Context().Value(user.Key).(string)
@@ -60,7 +60,7 @@ func Withdraw(bs AccountStorage, ws WithdrawalStorage) func(http.ResponseWriter,
 			return
 		}
 
-		a, err := getAccount(bs, u)
+		a, err := getAccount(as, u)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -72,6 +72,13 @@ func Withdraw(bs AccountStorage, ws WithdrawalStorage) func(http.ResponseWriter,
 		}
 
 		if err = ws.Add(NewWithdrawalFromRequest(wr, u)); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		a.Withdrawn += wr.Sum
+		a.Current -= wr.Sum
+		if err = as.Set(a); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
