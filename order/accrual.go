@@ -25,6 +25,7 @@ func getAccrual(accrualURL string, order string) (AccrualOrder, error) {
 	if err != nil {
 		return accrual, err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusTooManyRequests {
 		return accrual, errors.New(http.StatusText(res.StatusCode))
