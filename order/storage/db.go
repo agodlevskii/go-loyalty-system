@@ -12,18 +12,19 @@ type DBOrder struct {
 }
 
 func NewDBOrderStorage(db *sql.DB) (DBOrder, error) {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual REAL, uploaded_at timestamptz, "user" VARCHAR(50), UNIQUE(number))`)
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual NUMERIC, uploaded_at timestamptz, "user" VARCHAR(50), UNIQUE(number))`)
 	return DBOrder{db: db}, err
 }
 
 func (r DBOrder) Add(o order.Order) (order.Order, error) {
-	req := `INSERT INTO orders(number, status, accrual, uploaded_at, "user") VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING RETURNING *`
 	var newOrder order.Order
+
+	req := `INSERT INTO orders(number, status, accrual, uploaded_at, "user") VALUES($1, $2, $3, $4, $5) ON CONFLICT(number) DO NOTHING RETURNING *`
 	err := r.db.QueryRow(req, o.Number, o.Status, o.Accrual, o.UploadedAt, o.User).Scan(&newOrder.Number, &newOrder.Status, &newOrder.Accrual, &newOrder.UploadedAt, &newOrder.User)
-	if errors.Is(err, sql.ErrNoRows) || newOrder.Number == `` {
+	if errors.Is(err, sql.ErrNoRows) && newOrder.Number == `` {
 		dbOrder, err := r.Find(o.Number)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(`DB ADD`, err)
 			return newOrder, err
 		}
 

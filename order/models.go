@@ -11,10 +11,21 @@ const (
 	ErrSameUser      = `the order is already enqueued by the user`
 )
 
+type AccrualOrder struct {
+	Order   string `json:"order"`
+	Status  string `json:"status"`
+	Accrual int    `json:"accrual"`
+}
+
+type AccrualResponse struct {
+	StatusCode int
+	Accrual    AccrualOrder
+}
+
 type Order struct {
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
-	Accrual    float64   `json:"accrual"`
+	Accrual    int       `json:"accrual"`
 	UploadedAt time.Time `json:"uploaded_at"`
 	User       string
 }
