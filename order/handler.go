@@ -44,6 +44,7 @@ func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Re
 			}
 		}
 
+		w.Header().Set(`Content-Type`, `application/json`)
 		if err = json.NewEncoder(w).Encode(res); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -88,6 +89,7 @@ func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http
 			return
 		}
 
+		w.Header().Set(`Content-Type`, `application/json`)
 		w.WriteHeader(http.StatusAccepted)
 	}
 }
