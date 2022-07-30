@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"go-loyalty-system/user"
 	"io"
 	"log"
@@ -51,6 +52,7 @@ func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Re
 
 		w.Header().Set(`Content-Type`, `application/json`)
 		if err = json.NewEncoder(w).Encode(res); err != nil {
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
@@ -102,12 +104,13 @@ func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http
 func updateOrder(o Order, db Storage, accrualURL string) (Order, error) {
 	accrual, err := getAccrual(accrualURL, o.Number)
 	if err != nil {
+		fmt.Println(err)
 		return o, err
 	}
 
 	upd := combineOrderAndAccrual(o, accrual)
 	if upd.Status != o.Status {
-		if _, err = db.Add(upd); err != nil {
+		if _, err = db.Update(upd); err != nil {
 			return o, err
 		}
 	}

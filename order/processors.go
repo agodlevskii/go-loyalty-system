@@ -7,7 +7,7 @@ func getOrderFromAccrual(accrual AccrualOrder, user string) Order {
 		Number:     accrual.Order,
 		Status:     accrual.Status,
 		Accrual:    accrual.Accrual,
-		UploadedAt: time.Now(),
+		UploadedAt: time.Now().Format(time.RFC3339),
 		User:       user,
 	}
 }

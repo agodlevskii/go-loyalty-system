@@ -31,5 +31,9 @@ func getAccrual(accrualURL string, order string) (AccrualOrder, error) {
 		return accrual, errors.New(http.StatusText(res.StatusCode))
 	}
 
+	if res.StatusCode == http.StatusNoContent {
+		return accrual, nil
+	}
+
 	return accrual, json.NewDecoder(res.Body).Decode(&accrual)
 }
