@@ -29,6 +29,11 @@ func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Re
 			return
 		}
 
+		if len(orders) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		res := make([]Order, len(orders))
 		for i, o := range orders {
 			if o.Status == StatusNew || o.Status == StatusProcessing {

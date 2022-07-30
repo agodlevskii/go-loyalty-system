@@ -46,7 +46,7 @@ func (r DBOrder) Find(number string) (order.Order, error) {
 
 func (r DBOrder) FindAll(user string) ([]order.Order, error) {
 	os := make([]order.Order, 0)
-	rows, err := r.db.Query(`SELECT * FROM orders WHERE user = $1`, user)
+	rows, err := r.db.Query(`SELECT * FROM orders WHERE "user" = $1`, user)
 	if err != nil {
 		return nil, err
 	}
