@@ -12,7 +12,7 @@ type DBOrder struct {
 }
 
 func NewDBOrderStorage(db *sql.DB) (DBOrder, error) {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual NUMERIC, uploaded_at timestamptz, "user" VARCHAR(50), UNIQUE(number))`)
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual REAL, uploaded_at timestamptz, "user" VARCHAR(50), UNIQUE(number))`)
 	return DBOrder{db: db}, err
 }
 

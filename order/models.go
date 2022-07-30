@@ -12,9 +12,9 @@ const (
 )
 
 type AccrualOrder struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
 }
 
 type AccrualResponse struct {
@@ -25,7 +25,7 @@ type AccrualResponse struct {
 type Order struct {
 	Number     string    `json:"number"`
 	Status     string    `json:"status"`
-	Accrual    int       `json:"accrual"`
+	Accrual    float64   `json:"accrual"`
 	UploadedAt time.Time `json:"uploaded_at"`
 	User       string
 }
