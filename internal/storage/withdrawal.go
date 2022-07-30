@@ -16,7 +16,7 @@ type DBWithdrawal struct {
 }
 
 func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, error) {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS withdrawals ("order" VARCHAR(50), sum REAL, processed_at TIMETZ, "user" VARCHAR(50), UNIQUE("order"))`)
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS withdrawals ("order" VARCHAR(50), sum REAL, processed_at VARCHAR(25), "user" VARCHAR(50), UNIQUE("order"))`)
 	return DBWithdrawal{db: db}, err
 }
 
@@ -33,7 +33,7 @@ func (r DBWithdrawal) Find(order string) (models.Withdrawal, error) {
 
 func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, error) {
 	ws := make([]models.Withdrawal, 0)
-	rows, err := r.db.Query(`SELECT * FROM withdrawals WHERE user = $1`, user)
+	rows, err := r.db.Query(`SELECT * FROM withdrawals WHERE "user" = $1`, user)
 	if err != nil {
 		return nil, err
 	}

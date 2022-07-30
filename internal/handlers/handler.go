@@ -16,6 +16,7 @@ func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 	r.Route(`/api/user`, func(r chi.Router) {
 		r.Post(`/login`, auth.Login(db.User))
 		r.Post(`/register`, auth.Register(db.User))
+		r.Get(`/withdrawals`, GetWithdrawals(db.Withdrawal))
 
 		r.Route(`/orders`, func(r chi.Router) {
 			r.Get(`/`, GetOrders(cfg.AccrualURL, db.Order, db.Balance))
@@ -25,7 +26,6 @@ func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 		r.Route(`/balance`, func(r chi.Router) {
 			r.Get(`/`, GetBalance(db.Balance))
 			r.Post(`/withdraw`, Withdraw(db.Balance, db.Withdrawal))
-			r.Get(`/withdrawals`, GetWithdrawals(db.Withdrawal))
 		})
 	})
 

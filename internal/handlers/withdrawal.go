@@ -9,6 +9,7 @@ import (
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/internal/utils"
 	"go-loyalty-system/user"
+	"log"
 	"net/http"
 )
 
@@ -48,6 +49,7 @@ func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http
 
 		b, err := utils.GetBalance(bs, u)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -58,13 +60,13 @@ func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http
 		}
 
 		if err = ws.Add(models.NewWithdrawalFromWithdrawal(wr, u)); err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		b.Withdrawn += wr.Sum
-		b.Current -= wr.Sum
-		if err = bs.Set(b); err != nil {
+		if _, err = utils.UpdateBalanceWithWithdrawal(bs, b, wr); err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
