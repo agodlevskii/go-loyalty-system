@@ -15,6 +15,7 @@ func GetAccount(db AccountStorage) func(http.ResponseWriter, *http.Request) {
 		u := r.Context().Value(user.Key).(string)
 		a, err := getAccount(db, u)
 		if err == nil {
+			w.Header().Set(`Content-Type`, `application/json`)
 			err = json.NewEncoder(w).Encode(a)
 		}
 
@@ -38,6 +39,7 @@ func GetWithdrawals(db WithdrawalStorage) func(http.ResponseWriter, *http.Reques
 			return
 		}
 
+		w.Header().Set(`Content-Type`, `application/json`)
 		if err = json.NewEncoder(w).Encode(ws); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
