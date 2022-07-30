@@ -1,23 +1,23 @@
-package order
+package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/vivekmurali/luhn"
+	"go-loyalty-system/internal/models"
+	"go-loyalty-system/internal/storage"
+	"go-loyalty-system/internal/utils"
 	"go-loyalty-system/user"
 	"io"
-	"log"
 	"net/http"
 )
 
 var errToStat = map[string]int{
-	ErrSameUser:  http.StatusOK,
-	ErrOtherUser: http.StatusConflict,
+	models.ErrSameUser:  http.StatusOK,
+	models.ErrOtherUser: http.StatusConflict,
 }
 
-func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Request) {
+func GetOrders(accrualURL string, db storage.OrderStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := r.Context().Value(user.Key).(string)
 		orders, err := db.FindAll(u)
@@ -31,10 +31,10 @@ func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		res := make([]Order, len(orders))
+		res := make([]models.Order, len(orders))
 		for i, o := range orders {
-			if o.Status == StatusNew || o.Status == StatusProcessing {
-				upd, err := updateOrder(o, db, accrualURL)
+			if o.Status == models.StatusNew || o.Status == models.StatusProcessing {
+				upd, err := utils.UpdateOrderWithAccrual(o, db, accrualURL)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
@@ -54,7 +54,7 @@ func GetOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Re
 	}
 }
 
-func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http.Request) {
+func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := r.Context().Value(user.Key).(string)
 		id, err := io.ReadAll(r.Body)
@@ -69,7 +69,7 @@ func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http
 			return
 		}
 
-		if err = handleExistingOrder(db, order, u); err != nil {
+		if err = utils.CheckExistingOrder(os, order, u); err != nil {
 			if code, ok := errToStat[err.Error()]; ok {
 				w.WriteHeader(code)
 			} else {
@@ -78,12 +78,7 @@ func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http
 			return
 		}
 
-		accrual, err := getAccrual(accrualURL, order)
-		if err != nil {
-			log.Println(`ERROR`, err)
-		}
-
-		if _, err = db.Add(NewOrderFromAccrual(accrual, u)); err != nil {
+		if _, err = utils.AddOrderFromAccrual(os, bs, accrualURL, order, u); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -91,38 +86,4 @@ func UpdateOrders(accrualURL string, db Storage) func(http.ResponseWriter, *http
 		w.Header().Set(`Content-Type`, `application/json`)
 		w.WriteHeader(http.StatusAccepted)
 	}
-}
-
-func updateOrder(o Order, db Storage, accrualURL string) (Order, error) {
-	accrual, err := getAccrual(accrualURL, o.Number)
-	if err != nil {
-		fmt.Println(err)
-		return o, err
-	}
-
-	upd := NewOrderFromOrderAndAccrual(o, accrual)
-	if upd.Status != o.Status {
-		if _, err = db.Update(upd); err != nil {
-			return o, err
-		}
-	}
-
-	return upd, nil
-}
-
-func handleExistingOrder(db Storage, order string, u string) error {
-	o, err := db.Find(order)
-	if err != nil || o.Number == `` {
-		if errors.Is(err, sql.ErrNoRows) || o.Number == `` {
-			return nil
-		}
-		return err
-	}
-
-	errStr := ErrOtherUser
-	if o.User == u {
-		errStr = ErrSameUser
-	}
-
-	return errors.New(errStr)
 }

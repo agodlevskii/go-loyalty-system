@@ -1,4 +1,4 @@
-package order
+package models
 
 import "time"
 
@@ -28,13 +28,6 @@ type Order struct {
 	Accrual    float64 `json:"accrual"`
 	UploadedAt string  `json:"uploaded_at"`
 	User       string  `json:"-"`
-}
-
-type Storage interface {
-	Add(order Order) (Order, error)
-	Update(order Order) (Order, error)
-	Find(number string) (Order, error)
-	FindAll(user string) ([]Order, error)
 }
 
 func NewOrderFromAccrual(accrual AccrualOrder, user string) Order {
