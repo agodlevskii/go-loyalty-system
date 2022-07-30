@@ -2,7 +2,7 @@ package storage
 
 import (
 	"database/sql"
-	"go-loyalty-system/withdrawal"
+	"go-loyalty-system/balance"
 )
 
 type DBWithdrawal struct {
@@ -14,19 +14,19 @@ func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, error) {
 	return DBWithdrawal{db: db}, err
 }
 
-func (r DBWithdrawal) Add(w withdrawal.Withdrawal) error {
+func (r DBWithdrawal) Add(w balance.Withdrawal) error {
 	_, err := r.db.Exec(`INSERT INTO withdrawals ("order", sum, processed_at, "user") VALUES ($1, $2, $3, $4)`, w.Order, w.Sum, w.ProcessedAt, w.User)
 	return err
 }
 
-func (r DBWithdrawal) Find(order string) (withdrawal.Withdrawal, error) {
-	var w withdrawal.Withdrawal
+func (r DBWithdrawal) Find(order string) (balance.Withdrawal, error) {
+	var w balance.Withdrawal
 	err := r.db.QueryRow(`SELECT * FROM withdrawals WHERE "order" = $1`, order).Scan(&w)
 	return w, err
 }
 
-func (r DBWithdrawal) FindAll(user string) ([]withdrawal.Withdrawal, error) {
-	ws := make([]withdrawal.Withdrawal, 0)
+func (r DBWithdrawal) FindAll(user string) ([]balance.Withdrawal, error) {
+	ws := make([]balance.Withdrawal, 0)
 	rows, err := r.db.Query(`SELECT * FROM withdrawals WHERE user = $1`, user)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (r DBWithdrawal) FindAll(user string) ([]withdrawal.Withdrawal, error) {
 	}
 
 	for rows.Next() {
-		var w withdrawal.Withdrawal
+		var w balance.Withdrawal
 		err = rows.Scan(&w.Order, &w.Sum, &w.ProcessedAt, &w.User)
 		if err != nil {
 			return nil, err

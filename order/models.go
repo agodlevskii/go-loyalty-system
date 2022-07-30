@@ -1,5 +1,7 @@
 package order
 
+import "time"
+
 const (
 	StatusNew        = `NEW`
 	StatusInvalid    = `INVALID`
@@ -25,7 +27,7 @@ type Order struct {
 	Status     string  `json:"status"`
 	Accrual    float64 `json:"accrual"`
 	UploadedAt string  `json:"uploaded_at"`
-	User       string
+	User       string  `json:"-"`
 }
 
 type Storage interface {
@@ -33,4 +35,24 @@ type Storage interface {
 	Update(order Order) (Order, error)
 	Find(number string) (Order, error)
 	FindAll(user string) ([]Order, error)
+}
+
+func NewOrderFromAccrual(accrual AccrualOrder, user string) Order {
+	return Order{
+		Number:     accrual.Order,
+		Status:     accrual.Status,
+		Accrual:    accrual.Accrual,
+		UploadedAt: time.Now().Format(time.RFC3339),
+		User:       user,
+	}
+}
+
+func NewOrderFromOrderAndAccrual(order Order, accrual AccrualOrder) Order {
+	return Order{
+		Number:     order.Number,
+		Status:     accrual.Status,
+		Accrual:    accrual.Accrual,
+		UploadedAt: order.UploadedAt,
+		User:       order.User,
+	}
 }

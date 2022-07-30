@@ -6,7 +6,6 @@ import (
 	"go-loyalty-system/internal/configs"
 	"go-loyalty-system/order"
 	"go-loyalty-system/user/auth"
-	"go-loyalty-system/withdrawal"
 )
 
 func NewRouter(cfg *configs.Config, db Repo) *chi.Mux {
@@ -23,9 +22,9 @@ func NewRouter(cfg *configs.Config, db Repo) *chi.Mux {
 		})
 
 		r.Route(`/balance`, func(r chi.Router) {
-			r.Get(`/`, balance.GetBalance(db.Balance))
-			r.Post(`/withdraw`, withdrawal.Withdraw(db.Withdrawal))
-			r.Get(`/withdrawals`, withdrawal.GetWithdrawals(db.Withdrawal))
+			r.Get(`/`, balance.GetAccount(db.Account))
+			r.Post(`/withdraw`, balance.Withdraw(db.Account, db.Withdrawal))
+			r.Get(`/withdrawals`, balance.GetWithdrawals(db.Withdrawal))
 		})
 	})
 
