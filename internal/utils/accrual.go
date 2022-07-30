@@ -1,22 +1,21 @@
-package order
+package utils
 
 import (
 	"encoding/json"
 	"errors"
+	"go-loyalty-system/internal/models"
 	"net/http"
 )
 
-const URL = `/api/orders`
-
-func getAccrual(accrualURL string, order string) (AccrualOrder, error) {
-	accrual := AccrualOrder{
+func GetAccrual(accrualURL string, order string) (models.AccrualOrder, error) {
+	accrual := models.AccrualOrder{
 		Order:   order,
-		Status:  StatusNew,
+		Status:  models.StatusNew,
 		Accrual: 0,
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, accrualURL+URL+`/`+order, nil)
+	req, err := http.NewRequest(http.MethodGet, accrualURL+`/api/orders/`+order, nil)
 	if err != nil {
 		return accrual, err
 	}

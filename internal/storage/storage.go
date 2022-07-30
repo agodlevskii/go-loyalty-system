@@ -1,22 +1,16 @@
-package internal
+package storage
 
 import (
 	"database/sql"
-	"go-loyalty-system/balance"
-	balanceStorage "go-loyalty-system/balance/storage"
-	"go-loyalty-system/order"
-	orderStorage "go-loyalty-system/order/storage"
 	"go-loyalty-system/user"
 	userStorage "go-loyalty-system/user/storage"
-	"go-loyalty-system/withdrawal"
-	withdrawalStorage "go-loyalty-system/withdrawal/storage"
 )
 
 type Repo struct {
 	User       user.Storage
-	Balance    balance.Storage
-	Order      order.Storage
-	Withdrawal withdrawal.Storage
+	Balance    BalanceStorage
+	Order      OrderStorage
+	Withdrawal WithdrawalStorage
 }
 
 func NewDBRepo(url, driver string) (Repo, error) {
@@ -29,12 +23,12 @@ func NewDBRepo(url, driver string) (Repo, error) {
 		return Repo{}, err
 	}
 
-	bs, err := balanceStorage.NewDBBalanceStorage(db)
+	bs, err := NewDBBalanceStorage(db)
 	if err != nil {
 		return Repo{}, err
 	}
 
-	os, err := orderStorage.NewDBOrderStorage(db)
+	os, err := NewDBOrderStorage(db)
 	if err != nil {
 		return Repo{}, err
 	}
@@ -44,7 +38,7 @@ func NewDBRepo(url, driver string) (Repo, error) {
 		return Repo{}, err
 	}
 
-	ws, err := withdrawalStorage.NewDBWithdrawalStorage(db)
+	ws, err := NewDBWithdrawalStorage(db)
 	if err != nil {
 		return Repo{}, err
 	}
