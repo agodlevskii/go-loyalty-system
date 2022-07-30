@@ -11,13 +11,12 @@ import (
 
 func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, order, user string) (models.Order, error) {
 	accrual, err := GetAccrual(accrualURL, order)
-	if err != nil {
-		log.Println(`ERROR`, err)
-	}
-
 	o, err := os.Add(models.NewOrderFromAccrual(accrual, user))
 	if err == nil {
 		_, err = UpdateBalanceWithAccrual(bs, user, accrual.Accrual)
+	}
+	if err != nil {
+		log.Println(`ERROR`, err)
 	}
 	return o, err
 }
