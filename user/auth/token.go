@@ -15,7 +15,7 @@ type Claims struct {
 
 var jwtKey = []byte("my_secret_key0")
 
-func getToken(usr user.User) (string, error) {
+func getTokenFromUser(usr user.User) (string, error) {
 	exp := time.Now().Add(1 * time.Hour)
 	claims := &Claims{
 		User: usr.Login,
@@ -26,6 +26,18 @@ func getToken(usr user.User) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
+}
+
+func getUserFromToken(tokenStr string) (user.User, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenStr, claims, keyFn)
+	if err == nil {
+		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+			return user.User{Login: claims.User}, nil
+		}
+	}
+
+	return user.User{}, err
 }
 
 func isTokenValid(tokenStr string) (bool, error) {

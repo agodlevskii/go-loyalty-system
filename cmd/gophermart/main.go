@@ -18,6 +18,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := internal.NewRouter(db)
+	r := internal.NewRouter(cfg, db)
 	log.Fatal(http.ListenAndServe(cfg.Addr, r))
 }

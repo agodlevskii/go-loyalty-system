@@ -1,13 +1,15 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"go-loyalty-system/user"
 	"net/http"
 	"strings"
 )
 
-func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
+func Middleware(excludedPath []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			for _, path := range excludedPath {
@@ -23,7 +25,12 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			tknStr := strings.Split(tknHdr, `Bearer `)[1]
+			tknStr, err := getTokenFromBearer(tknHdr)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
 			if valid, err := isTokenValid(tknStr); err != nil || !valid {
 				if errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
 					w.WriteHeader(http.StatusUnauthorized)
@@ -33,7 +40,14 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			usr, err := getUserFromToken(tknStr)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), user.Key, usr.Login)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
