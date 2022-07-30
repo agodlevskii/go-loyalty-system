@@ -46,14 +46,18 @@ func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.
 		return o, err
 	}
 
+	accrual.Accrual = 100
+	accrual.Status = models.StatusProcessed
 	upd := models.NewOrderFromOrderAndAccrual(o, accrual)
 	if upd.Status != o.Status {
 		if upd, err = os.Update(upd); err != nil {
 			return o, err
 		}
 
-		if _, err := UpdateBalanceWithAccrual(bs, user, accrual.Accrual); err != nil {
-			return o, err
+		if upd.Accrual > 0 {
+			if _, err := UpdateBalanceWithAccrual(bs, user, accrual.Accrual); err != nil {
+				return o, err
+			}
 		}
 	}
 

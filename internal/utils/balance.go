@@ -11,13 +11,19 @@ func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual fl
 	b, err := bs.Get(user)
 	if errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
-		err = bs.Set(b)
-	}
-
-	if err != nil {
+	} else if err != nil {
 		return b, err
 	}
 
 	b.Current += accrual
 	return b, bs.Set(b)
+}
+
+func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, error) {
+	b, err := bs.Get(user)
+	if errors.Is(err, sql.ErrNoRows) {
+		b = models.NewBalance(user)
+		err = bs.Set(b)
+	}
+	return b, err
 }
