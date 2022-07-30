@@ -18,7 +18,7 @@ func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 		r.Post(`/register`, auth.Register(db.User))
 
 		r.Route(`/orders`, func(r chi.Router) {
-			r.Get(`/`, GetOrders(cfg.AccrualURL, db.Order))
+			r.Get(`/`, GetOrders(cfg.AccrualURL, db.Order, db.Balance))
 			r.Post(`/`, RegisterOrder(cfg.AccrualURL, db.Order, db.Balance))
 		})
 
