@@ -11,12 +11,13 @@ import (
 
 func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, order, user string) (models.Order, error) {
 	accrual, err := GetAccrual(accrualURL, order)
+	if err != nil {
+		log.Println(`ERROR`, err)
+	}
+
 	o, err := os.Add(models.NewOrderFromAccrual(accrual, user))
 	if err == nil {
 		_, err = UpdateBalanceWithAccrual(bs, user, accrual.Accrual)
-	}
-	if err != nil {
-		log.Println(`ERROR`, err)
 	}
 	return o, err
 }
@@ -38,7 +39,7 @@ func CheckExistingOrder(db storage.OrderStorage, order string, user string) erro
 	return errors.New(errStr)
 }
 
-func UpdateOrderWithAccrual(o models.Order, db storage.OrderStorage, accrualURL string) (models.Order, error) {
+func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, user string) (models.Order, error) {
 	accrual, err := GetAccrual(accrualURL, o.Number)
 	if err != nil {
 		fmt.Println(err)
@@ -47,7 +48,11 @@ func UpdateOrderWithAccrual(o models.Order, db storage.OrderStorage, accrualURL 
 
 	upd := models.NewOrderFromOrderAndAccrual(o, accrual)
 	if upd.Status != o.Status {
-		if _, err = db.Update(upd); err != nil {
+		if upd, err = os.Update(upd); err != nil {
+			return o, err
+		}
+
+		if _, err := UpdateBalanceWithAccrual(bs, user, accrual.Accrual); err != nil {
 			return o, err
 		}
 	}
