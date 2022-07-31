@@ -39,10 +39,10 @@ func NewError(label string, err error) *AppError {
 }
 
 func (e AppError) Error() string {
-	if e.Error() == `` {
+	if e.Err == nil {
 		return e.Label
 	}
-	return fmt.Sprintf("[%s] %v", e.Label, e.Error())
+	return fmt.Sprintf("[%s] %v", e.Label, e.Err)
 }
 
 func (e AppError) Unwrap() error {
