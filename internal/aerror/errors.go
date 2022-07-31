@@ -55,11 +55,10 @@ func NewEmptyError() *AppError {
 }
 
 func (e AppError) Error() string {
-	if e.Err == nil && e.Label == `` {
-		return ``
-	}
-
 	if e.Err == nil {
+		if e.Label == `` {
+			return ``
+		}
 		return e.Label
 	}
 	return fmt.Sprintf("[%s] %v", e.Label, e.Err)
