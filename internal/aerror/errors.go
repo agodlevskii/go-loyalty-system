@@ -19,6 +19,15 @@ const (
 	OrderExistsOtherUser     = `the order was added by another user`
 	OrderExistsSameUser      = `the order is already enqueued by the user`
 	RepoCreate               = `unable to initiate the application repo`
+	UserTableCreate          = `unable to create the users table`
+	UserAdd                  = `unable to create add the user`
+	UserFind                 = `unable to find the user`
+	UserPasswordIncorrect    = `the user password is incorrect`
+	UserPasswordHash         = `failed to generate the user password hash`
+	UserRequestIncorrect     = `the user request is incorrect`
+	UserTokenIncorrect       = `the user token is incorrect`
+	UserTokenInvalid         = `the user token is invalid`
+	UserTokenGeneration      = `failed to generate the user token`
 	WithdrawalTableCreate    = `unable to create the withdrawals table`
 	WithdrawalAdd            = `unable to create the withdrawal record`
 	WithdrawalFind           = `unable to find the withdrawal record`

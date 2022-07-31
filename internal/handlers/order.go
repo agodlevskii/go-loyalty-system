@@ -7,7 +7,6 @@ import (
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/internal/utils"
-	"go-loyalty-system/user"
 	"io"
 	"net/http"
 )
@@ -19,7 +18,7 @@ var errToStat = map[string]int{
 
 func GetOrders(accrualURL string, os storage.OrderStorage, bs storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(user.Key).(string)
+		u := r.Context().Value(models.UserKey).(string)
 		orders, err := os.FindAll(u)
 		if err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
@@ -55,7 +54,7 @@ func GetOrders(accrualURL string, os storage.OrderStorage, bs storage.BalanceSto
 
 func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(user.Key).(string)
+		u := r.Context().Value(models.UserKey).(string)
 		id, rerr := io.ReadAll(r.Body)
 		if rerr != nil || id == nil || len(id) == 0 {
 			HandleHTTPError(w, aerror.NewError(aerror.OrderNumberInvalid, rerr), http.StatusBadRequest)

@@ -5,7 +5,6 @@ import (
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/configs"
 	"go-loyalty-system/internal/storage"
-	"go-loyalty-system/user/auth"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -14,11 +13,11 @@ var nonValidatedRoutes = []string{`/api/user/login`, `/api/user/register`}
 
 func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(auth.Middleware(nonValidatedRoutes))
+	r.Use(AuthMiddleware(nonValidatedRoutes))
 
 	r.Route(`/api/user`, func(r chi.Router) {
-		r.Post(`/login`, auth.Login(db.User))
-		r.Post(`/register`, auth.Register(db.User))
+		r.Post(`/login`, Login(db.User))
+		r.Post(`/register`, Register(db.User))
 		r.Get(`/withdrawals`, GetWithdrawals(db.Withdrawal))
 
 		r.Route(`/orders`, func(r chi.Router) {

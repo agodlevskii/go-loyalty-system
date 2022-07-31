@@ -9,13 +9,12 @@ import (
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/internal/utils"
-	"go-loyalty-system/user"
 	"net/http"
 )
 
 func GetWithdrawals(db storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(user.Key).(string)
+		u := r.Context().Value(models.UserKey).(string)
 		ws, err := db.FindAll(u)
 		if err != nil {
 			code := http.StatusInternalServerError
@@ -37,7 +36,7 @@ func GetWithdrawals(db storage.WithdrawalStorage) func(http.ResponseWriter, *htt
 func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var wr models.Withdrawal
-		u := r.Context().Value(user.Key).(string)
+		u := r.Context().Value(models.UserKey).(string)
 		if encerr := json.NewDecoder(r.Body).Decode(&wr); encerr != nil {
 			HandleHTTPError(w, aerror.NewError(aerror.WithdrawalRequestInvalid, encerr), http.StatusBadRequest)
 			return

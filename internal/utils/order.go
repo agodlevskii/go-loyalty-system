@@ -3,17 +3,15 @@ package utils
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
-	"log"
 )
 
 func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, order, user string) (models.Order, *aerror.AppError) {
 	accrual, err := GetAccrual(accrualURL, order)
 	if err != nil {
-		log.Println(`ERROR`, err)
+		return models.Order{}, err
 	}
 
 	o, err := os.Add(models.NewOrderFromAccrual(accrual, user))
@@ -43,7 +41,6 @@ func CheckExistingOrder(db storage.OrderStorage, order string, user string) *aer
 func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, user string) (models.Order, *aerror.AppError) {
 	accrual, err := GetAccrual(accrualURL, o.Number)
 	if err != nil {
-		fmt.Println(err)
 		return o, err
 	}
 

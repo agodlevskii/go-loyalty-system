@@ -2,41 +2,40 @@ package storage
 
 import (
 	"database/sql"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"go-loyalty-system/internal/aerror"
-	"go-loyalty-system/user"
-	userStorage "go-loyalty-system/user/storage"
 )
 
 type Repo struct {
-	User       user.Storage
+	User       UserStorage
 	Balance    BalanceStorage
 	Order      OrderStorage
 	Withdrawal WithdrawalStorage
 }
 
-func NewDBRepo(url, driver string) (Repo, *aerror.AppError) {
+func NewDBRepo(url, driver string) (Repo, error) {
 	if driver == "" {
 		driver = `pgx`
 	}
 
-	db, err := sql.Open(driver, url)
-	if err != nil {
-		return Repo{}, aerror.NewError(aerror.RepoCreate, err)
+	db, sqlerr := sql.Open(driver, url)
+	if sqlerr != nil {
+		return Repo{}, aerror.NewError(aerror.RepoCreate, sqlerr)
 	}
 
 	bs, err := NewDBBalanceStorage(db)
 	if err != nil {
-		return Repo{}, aerror.NewError(aerror.RepoCreate, err)
+		return Repo{}, err
 	}
 
 	os, err := NewDBOrderStorage(db)
 	if err != nil {
-		return Repo{}, aerror.NewError(aerror.RepoCreate, err)
+		return Repo{}, err
 	}
 
-	us, err := userStorage.NewDBUserStorage(db)
+	us, err := NewDBUserStorage(db)
 	if err != nil {
-		return Repo{}, aerror.NewError(aerror.RepoCreate, err)
+		return Repo{}, err
 	}
 
 	ws, err := NewDBWithdrawalStorage(db)

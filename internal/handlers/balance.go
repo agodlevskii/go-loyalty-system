@@ -3,15 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"go-loyalty-system/internal/aerror"
+	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/internal/utils"
-	"go-loyalty-system/user"
 	"net/http"
 )
 
 func GetBalance(db storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(user.Key).(string)
+		u := r.Context().Value(models.UserKey).(string)
 		b, err := utils.GetBalance(db, u)
 		if err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
