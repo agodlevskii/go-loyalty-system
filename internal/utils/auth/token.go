@@ -15,41 +15,46 @@ type Claims struct {
 
 var jwtKey = []byte("my_secret_key0")
 
-func GetTokenFromUser(usr models.User) (string, *aerror.AppError) {
+func GetTokenFromUser(user models.User) (string, *aerror.AppError) {
 	exp := time.Now().Add(1 * time.Hour)
 	claims := &Claims{
-		User: usr.Login,
+		User: user.Login,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: exp.Unix(),
 		},
 	}
 
-	tclaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := tclaims.SignedString(jwtKey)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
 	if err != nil {
 		return ``, aerror.NewError(aerror.UserTokenGeneration, err)
 	}
-	return token, nil
+	return token, aerror.NewEmptyError()
 }
 
 func GetUserFromToken(tokenStr string) (models.User, *aerror.AppError) {
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenStr, claims, keyFn)
+	if tokenStr == `` {
+		return models.User{}, aerror.NewError(aerror.UserTokenIncorrect, nil)
+	}
+
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, keyFn)
 	if err == nil {
 		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-			return models.User{Login: claims.User}, nil
+			return models.User{Login: claims.User}, aerror.NewEmptyError()
 		}
 	}
 	return models.User{}, aerror.NewError(aerror.UserTokenIncorrect, err)
 }
 
 func IsTokenValid(tokenStr string) (bool, *aerror.AppError) {
+	if tokenStr == `` {
+		return false, aerror.NewError(aerror.UserTokenInvalid, nil)
+	}
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, keyFn)
 	if err != nil {
 		return false, aerror.NewError(aerror.UserTokenInvalid, nil)
 	}
-	return token.Valid, nil
+	return token.Valid, aerror.NewEmptyError()
 }
 
 func keyFn(token *jwt.Token) (interface{}, error) {
@@ -57,6 +62,9 @@ func keyFn(token *jwt.Token) (interface{}, error) {
 }
 
 func GetBearer(token string) string {
+	if token == `` {
+		return ``
+	}
 	return `Bearer ` + token
 }
 
@@ -66,5 +74,5 @@ func GetTokenFromBearer(bearer string) (string, *aerror.AppError) {
 		return ``, aerror.NewError(aerror.UserTokenIncorrect, nil)
 	}
 
-	return res[1], nil
+	return res[1], aerror.NewEmptyError()
 }

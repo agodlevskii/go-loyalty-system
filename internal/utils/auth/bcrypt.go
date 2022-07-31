@@ -10,7 +10,7 @@ func CompareHashes(reqPwd, dbPwd string) (bool, *aerror.AppError) {
 		return false, aerror.NewError(aerror.UserPasswordIncorrect, err)
 	}
 
-	return true, nil
+	return true, aerror.NewEmptyError()
 }
 
 func HashPassword(pwd string) (string, *aerror.AppError) {
@@ -18,5 +18,5 @@ func HashPassword(pwd string) (string, *aerror.AppError) {
 	if err != nil {
 		return ``, aerror.NewError(aerror.UserPasswordHash, err)
 	}
-	return string(hash), nil
+	return string(hash), aerror.NewEmptyError()
 }

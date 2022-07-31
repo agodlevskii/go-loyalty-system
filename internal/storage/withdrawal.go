@@ -21,7 +21,7 @@ func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, *aerror.AppError) {
 	if err != nil {
 		return DBWithdrawal{}, aerror.NewError(aerror.WithdrawalTableCreate, err)
 	}
-	return DBWithdrawal{db: db}, nil
+	return DBWithdrawal{db: db}, aerror.NewEmptyError()
 }
 
 func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
@@ -38,7 +38,7 @@ func (r DBWithdrawal) Find(order string) (models.Withdrawal, *aerror.AppError) {
 	if err != nil {
 		return w, aerror.NewError(aerror.WithdrawalFind, err)
 	}
-	return w, nil
+	return w, aerror.NewEmptyError()
 }
 
 func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, *aerror.AppError) {
@@ -60,5 +60,5 @@ func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, *aerror.AppErro
 		ws = append(ws, w)
 	}
 
-	return ws, nil
+	return ws, aerror.NewEmptyError()
 }

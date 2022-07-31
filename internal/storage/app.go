@@ -48,5 +48,5 @@ func NewDBRepo(url, driver string) (Repo, error) {
 		Order:      os,
 		User:       us,
 		Withdrawal: ws,
-	}, nil
+	}, aerror.NewEmptyError()
 }

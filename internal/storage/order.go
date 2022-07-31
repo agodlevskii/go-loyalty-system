@@ -23,7 +23,7 @@ func NewDBOrderStorage(db *sql.DB) (DBOrder, *aerror.AppError) {
 	if err != nil {
 		return DBOrder{}, aerror.NewError(aerror.OrderTableCreate, err)
 	}
-	return DBOrder{db: db}, nil
+	return DBOrder{db: db}, aerror.NewEmptyError()
 }
 
 func (r DBOrder) Add(o models.Order) (models.Order, *aerror.AppError) {
@@ -35,7 +35,7 @@ func (r DBOrder) Add(o models.Order) (models.Order, *aerror.AppError) {
 		return handleOrderAddFailure(r, o, err)
 	}
 
-	return newOrder, nil
+	return newOrder, aerror.NewEmptyError()
 }
 
 func (r DBOrder) Update(o models.Order) (models.Order, *aerror.AppError) {
@@ -43,7 +43,7 @@ func (r DBOrder) Update(o models.Order) (models.Order, *aerror.AppError) {
 	if err != nil {
 		return o, aerror.NewError(aerror.OrderUpdate, err)
 	}
-	return o, nil
+	return o, aerror.NewEmptyError()
 }
 
 func (r DBOrder) Find(number string) (models.Order, *aerror.AppError) {
@@ -52,7 +52,7 @@ func (r DBOrder) Find(number string) (models.Order, *aerror.AppError) {
 	if err != nil {
 		return o, aerror.NewError(aerror.OrderFind, err)
 	}
-	return o, nil
+	return o, aerror.NewEmptyError()
 }
 
 func (r DBOrder) FindAll(user string) ([]models.Order, *aerror.AppError) {
@@ -73,7 +73,7 @@ func (r DBOrder) FindAll(user string) ([]models.Order, *aerror.AppError) {
 		os = append(os, o)
 	}
 
-	return os, nil
+	return os, aerror.NewEmptyError()
 }
 
 func handleOrderAddFailure(r DBOrder, o models.Order, err error) (models.Order, *aerror.AppError) {

@@ -20,7 +20,7 @@ func NewDBBalanceStorage(db *sql.DB) (DBBalance, *aerror.AppError) {
 	if err != nil {
 		return DBBalance{}, aerror.NewError(aerror.BalanceTableCreate, err)
 	}
-	return DBBalance{db: db}, nil
+	return DBBalance{db: db}, aerror.NewEmptyError()
 }
 
 func (r DBBalance) Set(b models.Balance) *aerror.AppError {
@@ -37,5 +37,5 @@ func (r DBBalance) Get(user string) (models.Balance, *aerror.AppError) {
 	if err != nil {
 		return b, aerror.NewError(aerror.BalanceGet, err)
 	}
-	return b, nil
+	return b, aerror.NewEmptyError()
 }

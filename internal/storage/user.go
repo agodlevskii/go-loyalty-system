@@ -20,7 +20,7 @@ func NewDBUserStorage(db *sql.DB) (DBUser, *aerror.AppError) {
 	if err != nil {
 		return DBUser{}, aerror.NewError(aerror.UserTableCreate, err)
 	}
-	return DBUser{db: db}, nil
+	return DBUser{db: db}, aerror.NewEmptyError()
 }
 
 func (r DBUser) Add(user models.User) *aerror.AppError {
@@ -36,5 +36,5 @@ func (r DBUser) Find(name string) (models.User, *aerror.AppError) {
 	if err := r.db.QueryRow(`SELECT password FROM users WHERE name = $1`, dbUser.Login).Scan(&dbUser.Password); err != nil {
 		return models.User{}, aerror.NewError(aerror.UserFind, err)
 	}
-	return dbUser, nil
+	return dbUser, aerror.NewEmptyError()
 }
