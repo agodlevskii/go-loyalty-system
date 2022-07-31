@@ -28,7 +28,7 @@ func GetTokenFromUser(user models.User) (string, *aerror.AppError) {
 	if err != nil {
 		return ``, aerror.NewError(aerror.UserTokenGeneration, err)
 	}
-	return token, aerror.NewEmptyError()
+	return token, nil
 }
 
 func GetUserFromToken(tokenStr string) (models.User, *aerror.AppError) {
@@ -39,7 +39,7 @@ func GetUserFromToken(tokenStr string) (models.User, *aerror.AppError) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, keyFn)
 	if err == nil {
 		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-			return models.User{Login: claims.User}, aerror.NewEmptyError()
+			return models.User{Login: claims.User}, nil
 		}
 	}
 	return models.User{}, aerror.NewError(aerror.UserTokenIncorrect, err)
@@ -54,7 +54,7 @@ func IsTokenValid(tokenStr string) (bool, *aerror.AppError) {
 	if err != nil {
 		return false, aerror.NewError(aerror.UserTokenInvalid, nil)
 	}
-	return token.Valid, aerror.NewEmptyError()
+	return token.Valid, nil
 }
 
 func keyFn(token *jwt.Token) (interface{}, error) {
@@ -74,5 +74,5 @@ func GetTokenFromBearer(bearer string) (string, *aerror.AppError) {
 		return ``, aerror.NewError(aerror.UserTokenIncorrect, nil)
 	}
 
-	return res[1], aerror.NewEmptyError()
+	return res[1], nil
 }

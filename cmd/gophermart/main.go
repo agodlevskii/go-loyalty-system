@@ -15,7 +15,7 @@ func main() {
 	}
 
 	db, err := storage.NewDBRepo(cfg.DBURL, ``)
-	if err.Error() != `` {
+	if err != nil {
 		log.Fatal(err)
 	}
 

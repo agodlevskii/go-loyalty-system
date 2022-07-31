@@ -27,11 +27,11 @@ func GetAccrual(accrualURL string, order string) (models.AccrualOrder, *aerror.A
 	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusNoContent {
-		return accrual, aerror.NewEmptyError()
+		return accrual, nil
 	}
 	if err = json.NewDecoder(res.Body).Decode(&accrual); err != nil {
 		return accrual, aerror.NewError(aerror.AccrualGet, err)
 	}
 
-	return accrual, aerror.NewEmptyError()
+	return accrual, nil
 }

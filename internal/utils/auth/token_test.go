@@ -35,19 +35,22 @@ func TestGetBearer(t *testing.T) {
 
 func TestGetTokenFromBearer(t *testing.T) {
 	tests := []struct {
-		name    string
-		bearer  string
-		want    string
-		wantErr string
+		name     string
+		bearer   string
+		want     string
+		wantErr  bool
+		errLabel string
 	}{
 		{
-			name:    `Empty bearer`,
-			wantErr: aerror.UserTokenIncorrect,
+			name:     `Empty bearer`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:    `Incorrect bearer`,
-			bearer:  `Bearer`,
-			wantErr: aerror.UserTokenIncorrect,
+			name:     `Incorrect bearer`,
+			bearer:   `Bearer`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
 			name:   `Correct bearer`,
@@ -61,7 +64,10 @@ func TestGetTokenFromBearer(t *testing.T) {
 			t.Parallel()
 			got, err := GetTokenFromBearer(tt.bearer)
 			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.wantErr, err.Label)
+			assert.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
+				assert.Equal(t, tt.wantErr, err.Label)
+			}
 		})
 	}
 }
@@ -71,7 +77,8 @@ func TestGetTokenFromUser(t *testing.T) {
 		name      string
 		user      models.User
 		wantEmpty bool
-		wantErr   string
+		wantErr   bool
+		errLabel  string
 	}{
 		{
 			name: `Token generation`,
@@ -83,31 +90,38 @@ func TestGetTokenFromUser(t *testing.T) {
 			t.Parallel()
 			got, err := GetTokenFromUser(tt.user)
 			assert.Equal(t, tt.wantEmpty, got == ``)
-			assert.Equal(t, tt.wantErr, err.Label)
+			assert.Equal(t, tt.wantErr, err != nil)
+
+			if err != nil {
+				assert.Equal(t, tt.errLabel, err.Label)
+			}
 		})
 	}
 }
 
 func TestGetUserFromToken(t *testing.T) {
 	token, err := GetTokenFromUser(models.User{Login: `test_user`})
-	if err.Label != `` {
+	if err != nil {
 		t.Fatal(err)
 	}
 
 	tests := []struct {
-		name    string
-		token   string
-		want    models.User
-		wantErr string
+		name     string
+		token    string
+		want     models.User
+		wantErr  bool
+		errLabel string
 	}{
 		{
-			name:    `Empty token`,
-			wantErr: aerror.UserTokenIncorrect,
+			name:     `Empty token`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:    `Incorrect token`,
-			token:   `test_token`,
-			wantErr: aerror.UserTokenIncorrect,
+			name:     `Incorrect token`,
+			token:    `test_token`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
 			name:  `Correct token`,
@@ -121,31 +135,37 @@ func TestGetUserFromToken(t *testing.T) {
 			got, err := GetUserFromToken(tt.token)
 			fmt.Println(token, tt.token)
 			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.wantErr, err.Label)
+			assert.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
+				assert.Equal(t, tt.wantErr, err.Label)
+			}
 		})
 	}
 }
 
 func TestIsTokenValid(t *testing.T) {
 	token, err := GetTokenFromUser(models.User{Login: `test_user`})
-	if err.Label != `` {
+	if err != nil {
 		t.Fatal(err)
 	}
 
 	tests := []struct {
-		name    string
-		token   string
-		want    bool
-		wantErr string
+		name     string
+		token    string
+		want     bool
+		wantErr  bool
+		errLabel string
 	}{
 		{
-			name:    `Empty token`,
-			wantErr: aerror.UserTokenInvalid,
+			name:     `Empty token`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenInvalid,
 		},
 		{
-			name:    `Invalid token`,
-			token:   `test_token`,
-			wantErr: aerror.UserTokenInvalid,
+			name:     `Invalid token`,
+			token:    `test_token`,
+			wantErr:  true,
+			errLabel: aerror.UserTokenInvalid,
 		},
 		{
 			name:  `Valid token`,
@@ -158,7 +178,10 @@ func TestIsTokenValid(t *testing.T) {
 			t.Parallel()
 			got, err := IsTokenValid(tt.token)
 			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.wantErr, err.Label)
+			assert.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
+				assert.Equal(t, tt.wantErr, err.Label)
+			}
 		})
 	}
 }

@@ -57,5 +57,5 @@ func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.
 		}
 	}
 
-	return upd, aerror.NewEmptyError()
+	return upd, nil
 }

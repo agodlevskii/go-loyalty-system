@@ -50,10 +50,6 @@ func NewError(label string, err error) *AppError {
 	}
 }
 
-func NewEmptyError() *AppError {
-	return &AppError{}
-}
-
 func (e AppError) Error() string {
 	if e.Err == nil {
 		if e.Label == `` {
