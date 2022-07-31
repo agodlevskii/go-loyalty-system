@@ -10,7 +10,7 @@ import (
 
 func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, *aerror.AppError) {
 	b, err := bs.Get(user)
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
 		err = bs.Set(b)
 	}
@@ -19,7 +19,7 @@ func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, *aerror
 
 func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual float64) (models.Balance, *aerror.AppError) {
 	b, err := bs.Get(user)
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
 	} else if err != nil {
 		return b, err

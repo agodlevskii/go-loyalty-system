@@ -77,7 +77,7 @@ func (r DBOrder) FindAll(user string) ([]models.Order, *aerror.AppError) {
 }
 
 func handleOrderAddFailure(r DBOrder, o models.Order, err error) (models.Order, *aerror.AppError) {
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		if dbOrder, err := r.Find(o.Number); err == nil {
 			if dbOrder.User == o.User {
 				return dbOrder, aerror.NewError(aerror.OrderExistsSameUser, nil)

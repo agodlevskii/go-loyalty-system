@@ -31,7 +31,7 @@ func Login(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 
 		if equal, err := auth.CompareHashes(reqUser.Password, dbUser.Password); err != nil || !equal {
 			code := http.StatusInternalServerError
-			if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) && !equal {
+			if err != nil && errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) && !equal {
 				code = http.StatusUnauthorized
 			}
 			HandleHTTPError(w, err, code)
@@ -104,7 +104,7 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 
 			if valid, err := auth.IsTokenValid(tknStr); err != nil || !valid {
 				code := http.StatusBadRequest
-				if errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
+				if err != nil && errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
 					code = http.StatusUnauthorized
 				}
 				HandleHTTPError(w, err, code)

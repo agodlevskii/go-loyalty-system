@@ -24,7 +24,7 @@ func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, acc
 func CheckExistingOrder(db storage.OrderStorage, order string, user string) *aerror.AppError {
 	o, err := db.Find(order)
 	if err != nil || o.Number == `` {
-		if errors.Is(err, sql.ErrNoRows) || o.Number == `` {
+		if err != nil && errors.Is(err, sql.ErrNoRows) || o.Number == `` {
 			return nil
 		}
 		return err
