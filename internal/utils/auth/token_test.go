@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"go-loyalty-system/internal/aerror"
@@ -133,7 +132,6 @@ func TestGetUserFromToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := GetUserFromToken(tt.token)
-			fmt.Println(token, tt.token)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err != nil)
 			if err != nil {
