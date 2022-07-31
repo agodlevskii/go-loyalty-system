@@ -5,7 +5,6 @@ import (
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/configs"
 	"go-loyalty-system/internal/storage"
-	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -35,6 +34,6 @@ func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 }
 
 func HandleHTTPError(w http.ResponseWriter, err *aerror.AppError, code int) {
-	zap.Error(err)
+	aerror.Logger.Error(err.Error())
 	w.WriteHeader(code)
 }

@@ -68,7 +68,7 @@ func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.Balanc
 		}
 
 		if err := utils.CheckExistingOrder(os, order, u); err != nil {
-			code, ok := errToStat[err.Error()]
+			code, ok := errToStat[err.Label]
 			if !ok {
 				code = http.StatusInternalServerError
 			}

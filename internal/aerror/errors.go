@@ -2,6 +2,7 @@ package aerror
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 )
 
 const (
@@ -34,6 +35,8 @@ const (
 	WithdrawalFindAll        = `unable to create the user withdrawal records`
 	WithdrawalRequestInvalid = `the withdrawal request data is invalid`
 )
+
+var Logger, _ = zap.NewDevelopment()
 
 type AppError struct {
 	Label string
