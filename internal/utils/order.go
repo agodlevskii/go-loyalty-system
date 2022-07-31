@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 	"log"
 )
 
-func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, order, user string) (models.Order, error) {
+func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, order, user string) (models.Order, *aerror.AppError) {
 	accrual, err := GetAccrual(accrualURL, order)
 	if err != nil {
 		log.Println(`ERROR`, err)
@@ -22,7 +23,7 @@ func AddOrderFromAccrual(os storage.OrderStorage, bs storage.BalanceStorage, acc
 	return o, err
 }
 
-func CheckExistingOrder(db storage.OrderStorage, order string, user string) error {
+func CheckExistingOrder(db storage.OrderStorage, order string, user string) *aerror.AppError {
 	o, err := db.Find(order)
 	if err != nil || o.Number == `` {
 		if errors.Is(err, sql.ErrNoRows) || o.Number == `` {
@@ -31,15 +32,15 @@ func CheckExistingOrder(db storage.OrderStorage, order string, user string) erro
 		return err
 	}
 
-	errStr := models.ErrOtherUser
+	errStr := aerror.OrderExistsOtherUser
 	if o.User == user {
-		errStr = models.ErrSameUser
+		errStr = aerror.OrderExistsSameUser
 	}
 
-	return errors.New(errStr)
+	return aerror.NewError(errStr, err)
 }
 
-func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, user string) (models.Order, error) {
+func UpdateOrderWithAccrual(o models.Order, os storage.OrderStorage, bs storage.BalanceStorage, accrualURL, user string) (models.Order, *aerror.AppError) {
 	accrual, err := GetAccrual(accrualURL, o.Number)
 	if err != nil {
 		fmt.Println(err)

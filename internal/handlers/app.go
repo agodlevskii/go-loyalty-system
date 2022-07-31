@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"github.com/go-chi/chi/v5"
+	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/configs"
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/user/auth"
+	"go.uber.org/zap"
+	"net/http"
 )
 
 var nonValidatedRoutes = []string{`/api/user/login`, `/api/user/register`}
@@ -30,4 +33,9 @@ func NewRouter(cfg *configs.Config, db storage.Repo) *chi.Mux {
 	})
 
 	return r
+}
+
+func HandleHTTPError(w http.ResponseWriter, err *aerror.AppError, code int) {
+	zap.Error(err)
+	w.WriteHeader(code)
 }

@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/storage"
 	"go-loyalty-system/internal/utils"
 	"go-loyalty-system/user"
-	"log"
 	"net/http"
 )
 
@@ -13,14 +13,13 @@ func GetBalance(db storage.BalanceStorage) func(http.ResponseWriter, *http.Reque
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := r.Context().Value(user.Key).(string)
 		b, err := utils.GetBalance(db, u)
-		if err == nil {
-			w.Header().Set(`Content-Type`, `application/json`)
-			err = json.NewEncoder(w).Encode(b)
+		if err != nil {
+			HandleHTTPError(w, err, http.StatusInternalServerError)
 		}
 
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set(`Content-Type`, `application/json`)
+		if encerr := json.NewEncoder(w).Encode(b); encerr != nil {
+			HandleHTTPError(w, aerror.NewError(aerror.BalanceGet, encerr), http.StatusInternalServerError)
 		}
 	}
 }

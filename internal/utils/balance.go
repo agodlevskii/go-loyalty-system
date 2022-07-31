@@ -3,11 +3,12 @@ package utils
 import (
 	"database/sql"
 	"errors"
+	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 )
 
-func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, error) {
+func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, *aerror.AppError) {
 	b, err := bs.Get(user)
 	if errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
@@ -16,7 +17,7 @@ func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, error) 
 	return b, err
 }
 
-func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual float64) (models.Balance, error) {
+func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual float64) (models.Balance, *aerror.AppError) {
 	b, err := bs.Get(user)
 	if errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
@@ -28,7 +29,7 @@ func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual fl
 	return b, bs.Set(b)
 }
 
-func UpdateBalanceWithWithdrawal(bs storage.BalanceStorage, b models.Balance, w models.Withdrawal) (models.Balance, error) {
+func UpdateBalanceWithWithdrawal(bs storage.BalanceStorage, b models.Balance, w models.Withdrawal) (models.Balance, *aerror.AppError) {
 	b.Withdrawn += w.Sum
 	b.Current -= w.Sum
 	return b, bs.Set(b)

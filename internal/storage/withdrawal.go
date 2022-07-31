@@ -2,50 +2,60 @@ package storage
 
 import (
 	"database/sql"
+	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 )
 
 type WithdrawalStorage interface {
-	Add(withdrawal models.Withdrawal) error
-	Find(order string) (models.Withdrawal, error)
-	FindAll(user string) ([]models.Withdrawal, error)
+	Add(withdrawal models.Withdrawal) *aerror.AppError
+	Find(order string) (models.Withdrawal, *aerror.AppError)
+	FindAll(user string) ([]models.Withdrawal, *aerror.AppError)
 }
 
 type DBWithdrawal struct {
 	db *sql.DB
 }
 
-func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, error) {
+func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, *aerror.AppError) {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS withdrawals ("order" VARCHAR(50), sum REAL, processed_at VARCHAR(25), "user" VARCHAR(50), UNIQUE("order"))`)
-	return DBWithdrawal{db: db}, err
+	if err != nil {
+		return DBWithdrawal{}, aerror.NewError(aerror.WithdrawalTableCreate, err)
+	}
+	return DBWithdrawal{db: db}, nil
 }
 
-func (r DBWithdrawal) Add(w models.Withdrawal) error {
+func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
 	_, err := r.db.Exec(`INSERT INTO withdrawals ("order", sum, processed_at, "user") VALUES ($1, $2, $3, $4)`, w.Order, w.Sum, w.ProcessedAt, w.User)
-	return err
+	if err != nil {
+		return aerror.NewError(aerror.WithdrawalAdd, err)
+	}
+	return nil
 }
 
-func (r DBWithdrawal) Find(order string) (models.Withdrawal, error) {
+func (r DBWithdrawal) Find(order string) (models.Withdrawal, *aerror.AppError) {
 	var w models.Withdrawal
 	err := r.db.QueryRow(`SELECT * FROM withdrawals WHERE "order" = $1`, order).Scan(&w)
-	return w, err
+	if err != nil {
+		return w, aerror.NewError(aerror.WithdrawalFind, err)
+	}
+	return w, nil
 }
 
-func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, error) {
+func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, *aerror.AppError) {
 	ws := make([]models.Withdrawal, 0)
 	rows, err := r.db.Query(`SELECT * FROM withdrawals WHERE "user" = $1`, user)
 	if err != nil {
-		return nil, err
+		return nil, aerror.NewError(aerror.WithdrawalFindAll, err)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, aerror.NewError(aerror.WithdrawalFindAll, rows.Err())
 	}
 
 	for rows.Next() {
 		var w models.Withdrawal
 		err = rows.Scan(&w.Order, &w.Sum, &w.ProcessedAt, &w.User)
 		if err != nil {
-			return nil, err
+			return nil, aerror.NewError(aerror.WithdrawalFindAll, err)
 		}
 		ws = append(ws, w)
 	}
