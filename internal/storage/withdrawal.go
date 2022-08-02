@@ -6,6 +6,13 @@ import (
 	"go-loyalty-system/internal/models"
 )
 
+const (
+	WithdrawalTableCreate = `CREATE TABLE IF NOT EXISTS withdrawals ("order" VARCHAR(50), sum REAL, processed_at VARCHAR(25), "user" VARCHAR(50), UNIQUE("order"))`
+	WithdrawalAdd         = `INSERT INTO withdrawals ("order", sum, processed_at, "user") VALUES ($1, $2, $3, $4)`
+	WithdrawalFind        = `SELECT * FROM withdrawals WHERE "order" = $1`
+	WithdrawalFindAll     = `SELECT * FROM withdrawals WHERE "user" = $1`
+)
+
 type WithdrawalStorage interface {
 	Add(withdrawal models.Withdrawal) *aerror.AppError
 	Find(order string) (models.Withdrawal, *aerror.AppError)
@@ -17,7 +24,7 @@ type DBWithdrawal struct {
 }
 
 func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, *aerror.AppError) {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS withdrawals ("order" VARCHAR(50), sum REAL, processed_at VARCHAR(25), "user" VARCHAR(50), UNIQUE("order"))`)
+	_, err := db.Exec(WithdrawalTableCreate)
 	if err != nil {
 		return DBWithdrawal{}, aerror.NewError(aerror.WithdrawalTableCreate, err)
 	}
@@ -25,7 +32,7 @@ func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, *aerror.AppError) {
 }
 
 func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
-	_, err := r.db.Exec(`INSERT INTO withdrawals ("order", sum, processed_at, "user") VALUES ($1, $2, $3, $4)`, w.Order, w.Sum, w.ProcessedAt, w.User)
+	_, err := r.db.Exec(WithdrawalAdd, w.Order, w.Sum, w.ProcessedAt, w.User)
 	if err != nil {
 		return aerror.NewError(aerror.WithdrawalAdd, err)
 	}
@@ -34,7 +41,7 @@ func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
 
 func (r DBWithdrawal) Find(order string) (models.Withdrawal, *aerror.AppError) {
 	var w models.Withdrawal
-	err := r.db.QueryRow(`SELECT * FROM withdrawals WHERE "order" = $1`, order).Scan(&w)
+	err := r.db.QueryRow(WithdrawalFind, order).Scan(&w)
 	if err != nil {
 		return w, aerror.NewError(aerror.WithdrawalFind, err)
 	}
@@ -43,7 +50,7 @@ func (r DBWithdrawal) Find(order string) (models.Withdrawal, *aerror.AppError) {
 
 func (r DBWithdrawal) FindAll(user string) ([]models.Withdrawal, *aerror.AppError) {
 	ws := make([]models.Withdrawal, 0)
-	rows, err := r.db.Query(`SELECT * FROM withdrawals WHERE "user" = $1`, user)
+	rows, err := r.db.Query(WithdrawalFindAll, user)
 	if err != nil {
 		return nil, aerror.NewError(aerror.WithdrawalFindAll, err)
 	}
