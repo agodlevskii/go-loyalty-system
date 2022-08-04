@@ -21,7 +21,7 @@ const (
 	OrderExistsSameUser      = `the order is already enqueued by the user`
 	RepoCreate               = `unable to initiate the application repo`
 	UserTableCreate          = `unable to create the users table`
-	UserAdd                  = `unable to create add the user`
+	UserAdd                  = `unable to create a user`
 	UserFind                 = `unable to find the user`
 	UserPasswordIncorrect    = `the user password is incorrect`
 	UserPasswordHash         = `failed to generate the user password hash`
@@ -52,6 +52,9 @@ func NewError(label string, err error) *AppError {
 
 func (e AppError) Error() string {
 	if e.Err == nil {
+		if e.Label == `` {
+			return ``
+		}
 		return e.Label
 	}
 	return fmt.Sprintf("[%s] %v", e.Label, e.Err)
