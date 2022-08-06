@@ -26,13 +26,13 @@ func GetTokenFromUser(user models.User) (string, *aerror.AppError) {
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtKey)
 	if err != nil {
-		return ``, aerror.NewError(aerror.UserTokenGeneration, err)
+		return "", aerror.NewError(aerror.UserTokenGeneration, err)
 	}
 	return token, nil
 }
 
 func GetUserFromToken(tokenStr string) (models.User, *aerror.AppError) {
-	if tokenStr == `` {
+	if tokenStr == "" {
 		return models.User{}, aerror.NewError(aerror.UserTokenIncorrect, nil)
 	}
 
@@ -46,7 +46,7 @@ func GetUserFromToken(tokenStr string) (models.User, *aerror.AppError) {
 }
 
 func IsTokenValid(tokenStr string) (bool, *aerror.AppError) {
-	if tokenStr == `` {
+	if tokenStr == "" {
 		return false, aerror.NewError(aerror.UserTokenInvalid, nil)
 	}
 	claims := &Claims{}
@@ -62,16 +62,16 @@ func keyFn(token *jwt.Token) (interface{}, error) {
 }
 
 func GetBearer(token string) string {
-	if token == `` {
-		return ``
+	if token == "" {
+		return ""
 	}
-	return `Bearer ` + token
+	return "Bearer " + token
 }
 
 func GetTokenFromBearer(bearer string) (string, *aerror.AppError) {
-	res := strings.Split(bearer, `Bearer `)
-	if len(res) != 2 || res[0] != `` {
-		return ``, aerror.NewError(aerror.UserTokenIncorrect, nil)
+	res := strings.Split(bearer, "Bearer ")
+	if len(res) != 2 || res[0] != "" {
+		return "", aerror.NewError(aerror.UserTokenIncorrect, nil)
 	}
 
 	return res[1], nil

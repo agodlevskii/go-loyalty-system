@@ -1,26 +1,42 @@
-package utils
+package services
 
 import (
+	"context"
 	"encoding/json"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 	"net/http"
+	"time"
 )
 
-func GetAccrual(accrualURL string, order string) (models.AccrualOrder, *aerror.AppError) {
+type AccrualClient struct {
+	client *http.Client
+	url    string
+}
+
+func NewAccrualClient(url string) AccrualClient {
+	return AccrualClient{
+		client: &http.Client{},
+		url:    url,
+	}
+}
+
+func (a AccrualClient) GetAccrual(order string) (models.AccrualOrder, *aerror.AppError) {
 	accrual := models.AccrualOrder{
 		Order:   order,
 		Status:  models.StatusNew,
 		Accrual: 0,
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, accrualURL+`/api/orders/`+order, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.url+"/api/orders/"+order, nil)
 	if err != nil {
 		return accrual, aerror.NewError(aerror.AccrualGet, err)
 	}
 
-	res, err := client.Do(req)
+	res, err := a.client.Do(req)
 	if err != nil {
 		return accrual, aerror.NewError(aerror.AccrualGet, err)
 	}

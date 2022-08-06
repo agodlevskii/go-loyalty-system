@@ -14,7 +14,7 @@ func TestDBBalance_Get(t *testing.T) {
 	tb := models.Balance{
 		Current:   100,
 		Withdrawn: 50,
-		User:      `test`,
+		User:      "test",
 	}
 	tests := []struct {
 		name    string
@@ -24,12 +24,12 @@ func TestDBBalance_Get(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    `Non-existing entry`,
+			name:    "Non-existing entry",
 			user:    tb.User,
 			wantErr: aerror.BalanceGet,
 		},
 		{
-			name:   `Existing entry`,
+			name:   "Existing entry",
 			user:   tb.User,
 			stored: tb,
 			want:   tb,
@@ -42,7 +42,7 @@ func TestDBBalance_Get(t *testing.T) {
 			defer r.db.Close()
 
 			eq := mock.ExpectQuery(regexp.QuoteMeta(BalanceGet)).WithArgs(tt.user)
-			if tt.stored.User != `` {
+			if tt.stored.User != "" {
 				row := mock.NewRows([]string{"user", "current", "withdrawn"}).AddRow(tt.stored.User, tt.stored.Current, tt.stored.Withdrawn)
 				eq.WillReturnRows(row)
 			}
@@ -58,7 +58,7 @@ func TestDBBalance_Set(t *testing.T) {
 	tb := models.Balance{
 		Current:   100,
 		Withdrawn: 50,
-		User:      `test`,
+		User:      "test",
 	}
 	tests := []struct {
 		name    string
@@ -67,11 +67,11 @@ func TestDBBalance_Set(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: `New balance`,
+			name: "New balance",
 			b:    tb,
 		},
 		{
-			name:   `Existing balance`,
+			name:   "Existing balance",
 			b:      tb,
 			stored: tb,
 		},
@@ -98,7 +98,7 @@ func TestNewDBBalanceStorage(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: `Create storage`,
+			name: "Create storage",
 			db:   db,
 			want: DBBalance{db},
 		},
@@ -117,7 +117,7 @@ func TestNewDBBalanceStorage(t *testing.T) {
 func initBalanceRepo(t *testing.T, init models.Balance) (DBBalance, sqlmock.Sqlmock) {
 	db, mock := getMock(t)
 	r := DBBalance{db}
-	if init.User != `` {
+	if init.User != "" {
 		setBalanceExpect(mock, init)
 		if err := r.Set(init); err != nil {
 			t.Fatal(err)

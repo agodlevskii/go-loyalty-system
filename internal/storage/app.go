@@ -13,12 +13,8 @@ type Repo struct {
 	Withdrawal WithdrawalStorage
 }
 
-func NewDBRepo(url, driver string) (Repo, error) {
-	if driver == "" {
-		driver = `pgx`
-	}
-
-	db, sqlerr := sql.Open(driver, url)
+func NewDBRepo(url string) (Repo, error) {
+	db, sqlerr := sql.Open("pgx", url)
 	if sqlerr != nil {
 		return Repo{}, aerror.NewError(aerror.RepoCreate, sqlerr)
 	}

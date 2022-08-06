@@ -1,6 +1,6 @@
 package models
 
-const UserKey CtxKey = `user`
+const UserKey CtxKey = "user"
 
 type CtxKey string
 

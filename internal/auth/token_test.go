@@ -15,12 +15,12 @@ func TestGetBearer(t *testing.T) {
 		want  string
 	}{
 		{
-			name: `Empty token`,
+			name: "Empty token",
 		},
 		{
-			name:  `Non-empty token`,
-			token: `test_token`,
-			want:  `Bearer test_token`,
+			name:  "Non-empty token",
+			token: "test_token",
+			want:  "Bearer test_token",
 		},
 	}
 	for _, tt := range tests {
@@ -41,20 +41,20 @@ func TestGetTokenFromBearer(t *testing.T) {
 		errLabel string
 	}{
 		{
-			name:     `Empty bearer`,
+			name:     "Empty bearer",
 			wantErr:  true,
 			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:     `Incorrect bearer`,
-			bearer:   `Bearer`,
+			name:     "Incorrect bearer",
+			bearer:   "Bearer",
 			wantErr:  true,
 			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:   `Correct bearer`,
-			bearer: `Bearer test_token`,
-			want:   `test_token`,
+			name:   "Correct bearer",
+			bearer: "Bearer test_token",
+			want:   "test_token",
 		},
 	}
 
@@ -80,15 +80,15 @@ func TestGetTokenFromUser(t *testing.T) {
 		errLabel  string
 	}{
 		{
-			name: `Token generation`,
-			user: models.User{Login: `test_user`},
+			name: "Token generation",
+			user: models.User{Login: "test_user"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := GetTokenFromUser(tt.user)
-			assert.Equal(t, tt.wantEmpty, got == ``)
+			assert.Equal(t, tt.wantEmpty, got == "")
 			assert.Equal(t, tt.wantErr, err != nil)
 
 			if err != nil {
@@ -99,7 +99,7 @@ func TestGetTokenFromUser(t *testing.T) {
 }
 
 func TestGetUserFromToken(t *testing.T) {
-	token, err := GetTokenFromUser(models.User{Login: `test_user`})
+	token, err := GetTokenFromUser(models.User{Login: "test_user"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,20 +112,20 @@ func TestGetUserFromToken(t *testing.T) {
 		errLabel string
 	}{
 		{
-			name:     `Empty token`,
+			name:     "Empty token",
 			wantErr:  true,
 			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:     `Incorrect token`,
-			token:    `test_token`,
+			name:     "Incorrect token",
+			token:    "test_token",
 			wantErr:  true,
 			errLabel: aerror.UserTokenIncorrect,
 		},
 		{
-			name:  `Correct token`,
+			name:  "Correct token",
 			token: token,
-			want:  models.User{Login: `test_user`},
+			want:  models.User{Login: "test_user"},
 		},
 	}
 	for _, tt := range tests {
@@ -142,7 +142,7 @@ func TestGetUserFromToken(t *testing.T) {
 }
 
 func TestIsTokenValid(t *testing.T) {
-	token, err := GetTokenFromUser(models.User{Login: `test_user`})
+	token, err := GetTokenFromUser(models.User{Login: "test_user"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,18 +155,18 @@ func TestIsTokenValid(t *testing.T) {
 		errLabel string
 	}{
 		{
-			name:     `Empty token`,
+			name:     "Empty token",
 			wantErr:  true,
 			errLabel: aerror.UserTokenInvalid,
 		},
 		{
-			name:     `Invalid token`,
-			token:    `test_token`,
+			name:     "Invalid token",
+			token:    "test_token",
 			wantErr:  true,
 			errLabel: aerror.UserTokenInvalid,
 		},
 		{
-			name:  `Valid token`,
+			name:  "Valid token",
 			token: token,
 			want:  true,
 		},
@@ -192,11 +192,11 @@ func Test_keyFn(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: `Empty token`,
+			name: "Empty token",
 			want: jwtKey,
 		},
 		{
-			name:  `Non-empty token`,
+			name:  "Non-empty token",
 			token: &jwt.Token{},
 			want:  jwtKey,
 		},

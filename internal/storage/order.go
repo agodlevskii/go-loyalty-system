@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"errors"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 )
@@ -38,7 +37,7 @@ func (r DBOrder) Add(o models.Order) (models.Order, *aerror.AppError) {
 	var newOrder models.Order
 	err := r.db.QueryRow(OrderAdd, o.Number, o.Status, o.Accrual, o.UploadedAt, o.User).Scan(&newOrder.Number, &newOrder.Status, &newOrder.Accrual, &newOrder.UploadedAt, &newOrder.User)
 	if err != nil {
-		return handleOrderAddFailure(r, o, err)
+		return models.Order{}, aerror.NewError(aerror.OrderAdd, err)
 	}
 	return newOrder, nil
 }
@@ -79,18 +78,4 @@ func (r DBOrder) FindAll(user string) ([]models.Order, *aerror.AppError) {
 	}
 
 	return os, nil
-}
-
-func handleOrderAddFailure(r DBOrder, o models.Order, err error) (models.Order, *aerror.AppError) {
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		if dbOrder, err := r.Find(o.Number); err == nil {
-			if dbOrder.User == o.User {
-				return dbOrder, aerror.NewError(aerror.OrderExistsSameUser, nil)
-			}
-
-			return models.Order{}, aerror.NewError(aerror.OrderExistsOtherUser, nil)
-		}
-	}
-
-	return models.Order{}, aerror.NewError(aerror.OrderAdd, err)
 }
