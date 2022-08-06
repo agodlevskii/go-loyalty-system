@@ -11,7 +11,6 @@ import (
 
 func NewRouter(db storage.Repo, accrual services.AccrualClient) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(AuthMiddleware())
 
 	r.Route("/api/user", func(r chi.Router) {
 		withAuthRouter := r.With(AuthMiddleware())
