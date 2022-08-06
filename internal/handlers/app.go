@@ -20,13 +20,13 @@ func NewRouter(db storage.Repo, accrual services.AccrualClient) *chi.Mux {
 		withAuthRouter.Get("/withdrawals", GetWithdrawals(db.Withdrawal))
 
 		withAuthRouter.Route("/orders", func(r chi.Router) {
-			withAuthRouter.Get("/", GetOrders(accrual, db.Order, db.Balance))
-			withAuthRouter.Post("/", RegisterOrder(accrual, db.Order, db.Balance))
+			r.Get("/", GetOrders(accrual, db.Order, db.Balance))
+			r.Post("/", RegisterOrder(accrual, db.Order, db.Balance))
 		})
 
 		withAuthRouter.Route("/balance", func(r chi.Router) {
-			withAuthRouter.Get("/", GetBalance(db.Balance))
-			withAuthRouter.Post("/withdraw", Withdraw(db.Balance, db.Withdrawal))
+			r.Get("/", GetBalance(db.Balance))
+			r.Post("/withdraw", Withdraw(db.Balance, db.Withdrawal))
 		})
 	})
 
