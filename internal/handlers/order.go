@@ -16,7 +16,7 @@ var errToStat = map[string]int{
 	aerror.OrderExistsOtherUser: http.StatusConflict,
 }
 
-func GetOrders(accrual services.AccrualClient, oStorage storage.OrderStorage, bStorage storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
+func GetOrders(oStorage storage.OrderStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := r.Context().Value(models.UserKey).(string)
 		if !ok {
@@ -38,14 +38,6 @@ func GetOrders(accrual services.AccrualClient, oStorage storage.OrderStorage, bS
 		w.Header().Set("Content-Type", "application/json")
 		if encerr := json.NewEncoder(w).Encode(orders); encerr != nil {
 			HandleHTTPError(w, aerror.NewError(aerror.OrderFindAll, encerr), http.StatusInternalServerError)
-		}
-
-		for _, o := range orders {
-			go func(o models.Order) {
-				if o.Status == models.StatusNew || o.Status == models.StatusProcessing {
-					services.UpdateOrderWithAccrual(o, oStorage, bStorage, accrual, u)
-				}
-			}(o)
 		}
 	}
 }

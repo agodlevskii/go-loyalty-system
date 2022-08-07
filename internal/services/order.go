@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"go-loyalty-system/internal/aerror"
+	"go-loyalty-system/internal/logs"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
 )
@@ -46,7 +47,7 @@ func AddOrderFromAccrual(oStorage storage.OrderStorage, bStorage storage.Balance
 	return o, err
 }
 
-func UpdateOrderWithAccrual(o models.Order, oStorage storage.OrderStorage, bStorage storage.BalanceStorage, client AccrualClient, user string) (models.Order, *aerror.AppError) {
+func updateOrderWithAccrual(o models.Order, oStorage storage.OrderStorage, bStorage storage.BalanceStorage, client AccrualClient) (models.Order, *aerror.AppError) {
 	accrual, err := client.GetAccrual(o.Number)
 	if err != nil {
 		return o, err
@@ -59,11 +60,28 @@ func UpdateOrderWithAccrual(o models.Order, oStorage storage.OrderStorage, bStor
 		}
 
 		if upd.Accrual > 0 {
-			if _, err := updateBalanceWithAccrual(bStorage, user, accrual.Accrual); err != nil {
+			if _, err := updateBalanceWithAccrual(bStorage, o.User, accrual.Accrual); err != nil {
 				return o, err
 			}
 		}
 	}
 
 	return upd, nil
+}
+
+func UpdateOrdersStatus(r storage.Repo, accrual AccrualClient) {
+	orders, err := r.Order.FindAllProcessing()
+	if err != nil {
+		logs.Logger.Error(err.Error())
+		return
+	}
+
+	for _, o := range orders {
+		go func(o models.Order) {
+			if _, err = updateOrderWithAccrual(o, r.Order, r.Balance, accrual); err != nil {
+				logs.Logger.Error(err.Error())
+				return
+			}
+		}(o)
+	}
 }

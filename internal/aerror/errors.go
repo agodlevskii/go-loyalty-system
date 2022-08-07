@@ -15,6 +15,7 @@ const (
 	OrderNumberInvalid       = "the order number is invalid"
 	OrderFind                = "unable to find the order record"
 	OrderFindAll             = "unable to find the user order records"
+	OrderFindAllProcessing   = "unable to find the unprocessed order records"
 	OrderUpdate              = "unable to update the order record"
 	OrderExistsOtherUser     = "the order was added by another user"
 	OrderExistsSameUser      = "the order is already enqueued by the user"

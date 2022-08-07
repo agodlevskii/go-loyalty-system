@@ -3,6 +3,7 @@ package main
 import (
 	"go-loyalty-system/internal/configs"
 	"go-loyalty-system/internal/handlers"
+	"go-loyalty-system/internal/jobs"
 	"go-loyalty-system/internal/logs"
 	"go-loyalty-system/internal/services"
 	"go-loyalty-system/internal/storage"
@@ -24,6 +25,10 @@ func main() {
 	}
 
 	accrual := services.NewAccrualClient(cfg.AccrualURL)
+	if err = jobs.OrderStatusUpdate(db, accrual); err != nil {
+		log.Fatal(err)
+	}
+
 	r := handlers.NewRouter(db, accrual)
 	log.Fatal(http.ListenAndServe(cfg.Addr, r))
 }
