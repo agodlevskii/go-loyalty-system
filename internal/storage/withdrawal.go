@@ -37,7 +37,7 @@ func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
 	if err != nil {
 		return aerror.NewError(aerror.WithdrawalAdd, err)
 	}
-	if err = tx.QueryRow(BalanceGet, w.User).Scan(&b); err != nil {
+	if err = tx.QueryRow(BalanceGet, w.User).Scan(&b.User, &b.Current, &b.Withdrawn); err != nil {
 		return aerror.NewError(aerror.BalanceGet, err)
 	}
 	if b.User == `` {

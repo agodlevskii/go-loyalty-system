@@ -18,35 +18,35 @@ var tw = models.Withdrawal{
 	User:        "test",
 }
 
-func TestDBWithdrawal_Add(t *testing.T) {
-	tests := []struct {
-		name    string
-		stored  models.Withdrawal
-		w       models.Withdrawal
-		wantErr string
-	}{
-		{
-			name:    "Existing withdrawal",
-			stored:  tw,
-			w:       tw,
-			wantErr: aerror.WithdrawalAdd,
-		}, {
-			name: "Non-existing withdrawal",
-			w:    tw,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			r, mock := initWithdrawalRepo(t, tt.stored)
-			defer r.db.Close()
-
-			expectWithdrawalAdd(mock, tt.w, tt.stored.User != "")
-			err := r.Add(tt.w)
-			assertError(t, tt.wantErr, err)
-		})
-	}
-}
+//func TestDBWithdrawal_Add(t *testing.T) {
+//	tests := []struct {
+//		name    string
+//		stored  models.Withdrawal
+//		w       models.Withdrawal
+//		wantErr string
+//	}{
+//		{
+//			name:    "Existing withdrawal",
+//			stored:  tw,
+//			w:       tw,
+//			wantErr: aerror.WithdrawalAdd,
+//		}, {
+//			name: "Non-existing withdrawal",
+//			w:    tw,
+//		},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			t.Parallel()
+//			r, mock := initWithdrawalRepo(t, tt.stored)
+//			defer r.db.Close()
+//
+//			expectWithdrawalAdd(mock, tt.w, tt.stored.User != "")
+//			err := r.Add(tt.w)
+//			assertError(t, tt.wantErr, err)
+//		})
+//	}
+//}
 
 func TestDBWithdrawal_Find(t *testing.T) {
 	tests := []struct {
