@@ -7,7 +7,6 @@ import (
 	"github.com/vivekmurali/luhn"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
-	"go-loyalty-system/internal/services"
 	"go-loyalty-system/internal/storage"
 	"net/http"
 	"sync"
@@ -41,7 +40,7 @@ func GetWithdrawals(db storage.WithdrawalStorage) func(http.ResponseWriter, *htt
 	}
 }
 
-func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
+func Withdraw(ws storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var wr models.Withdrawal
 		u, ok := r.Context().Value(models.UserKey).(string)
@@ -60,25 +59,9 @@ func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http
 			return
 		}
 
-		b, err := services.GetBalance(bs, u)
-		if err != nil {
-			HandleHTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
 		mu.Lock()
 		defer mu.Unlock()
-		if b.Current < wr.Sum {
-			HandleHTTPError(w, aerror.NewError(aerror.BalanceInsufficient, nil), http.StatusPaymentRequired)
-			return
-		}
-
-		if err = ws.Add(models.NewWithdrawalFromWithdrawal(wr, u)); err != nil {
-			HandleHTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		if _, err = services.UpdateBalanceWithWithdrawal(bs, b, wr); err != nil {
+		if err := ws.Add(models.NewWithdrawalFromWithdrawal(wr, u)); err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}

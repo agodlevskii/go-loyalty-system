@@ -5,6 +5,8 @@ import (
 )
 
 const (
+	SystemCommit             = "unable to commit a transaction"
+	SystemRollback           = "unable to rollback a transaction"
 	AccrualGet               = "unable to gather the order information from the accrual API"
 	BalanceTableCreate       = "unable to create the balance table"
 	BalanceSet               = "unable to set the user's balance"

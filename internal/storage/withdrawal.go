@@ -32,10 +32,35 @@ func NewDBWithdrawalStorage(db *sql.DB) (DBWithdrawal, *aerror.AppError) {
 }
 
 func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
-	_, err := r.db.Exec(WithdrawalAdd, w.Order, w.Sum, w.ProcessedAt, w.User)
+	var b models.Balance
+	tx, err := r.db.Begin()
 	if err != nil {
 		return aerror.NewError(aerror.WithdrawalAdd, err)
 	}
+	if err = tx.QueryRow(BalanceGet, w.User).Scan(&b); err != nil {
+		return aerror.NewError(aerror.BalanceGet, err)
+	}
+	if b.User == `` {
+		b = models.NewBalance(w.User)
+	}
+	if b.Current < w.Sum {
+		return aerror.NewError(aerror.BalanceInsufficient, nil)
+	}
+
+	if _, err = tx.Exec(WithdrawalAdd, w.Order, w.Sum, w.ProcessedAt, w.User); err == nil {
+		_, err = tx.Exec(BalanceSet, b.User, b.Current-w.Sum, b.Withdrawn+w.Sum)
+	}
+
+	if err != nil {
+		if err = tx.Rollback(); err != nil {
+			return aerror.NewError(aerror.SystemRollback, err)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return aerror.NewError(aerror.SystemCommit, err)
+	}
+
 	return nil
 }
 
