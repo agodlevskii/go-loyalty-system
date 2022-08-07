@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 )
@@ -37,7 +38,7 @@ func (r DBWithdrawal) Add(w models.Withdrawal) *aerror.AppError {
 	if err != nil {
 		return aerror.NewError(aerror.WithdrawalAdd, err)
 	}
-	if err = tx.QueryRow(BalanceGet, w.User).Scan(&b.User, &b.Current, &b.Withdrawn); err != nil {
+	if err = tx.QueryRow(BalanceGet, w.User).Scan(&b.User, &b.Current, &b.Withdrawn); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return aerror.NewError(aerror.BalanceGet, err)
 	}
 	if b.User == `` {

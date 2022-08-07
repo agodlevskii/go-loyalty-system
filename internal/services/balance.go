@@ -28,9 +28,3 @@ func updateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual fl
 	b.Current += accrual
 	return b, bs.Set(b)
 }
-
-func UpdateBalanceWithWithdrawal(bs storage.BalanceStorage, b models.Balance, w models.Withdrawal) (models.Balance, *aerror.AppError) {
-	b.Withdrawn += w.Sum
-	b.Current -= w.Sum
-	return b, bs.Set(b)
-}
