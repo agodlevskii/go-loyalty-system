@@ -3,10 +3,10 @@ package models
 import "time"
 
 const (
-	StatusNew        = `NEW`
-	StatusInvalid    = `INVALID`
-	StatusProcessing = `PROCESSING`
-	StatusProcessed  = `PROCESSED`
+	StatusNew        = "NEW"
+	StatusInvalid    = "INVALID"
+	StatusProcessing = "PROCESSING"
+	StatusProcessed  = "PROCESSED"
 )
 
 type AccrualOrder struct {

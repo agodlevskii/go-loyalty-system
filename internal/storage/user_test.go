@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var user = models.User{Login: `test`, Password: `test`}
+var user = models.User{Login: "test", Password: "test"}
 
 func TestDBUser_Add(t *testing.T) {
 	tests := []struct {
@@ -20,11 +20,11 @@ func TestDBUser_Add(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: `Add new user`,
+			name: "Add new user",
 			user: user,
 		},
 		{
-			name:    `Add existing user`,
+			name:    "Add existing user",
 			user:    user,
 			stored:  user,
 			wantErr: aerror.UserAdd,
@@ -52,12 +52,12 @@ func TestDBUser_Find(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    `Missing user`,
+			name:    "Missing user",
 			user:    user.Login,
 			wantErr: aerror.UserFind,
 		},
 		{
-			name:   `Existing user`,
+			name:   "Existing user",
 			stored: user,
 			want:   user,
 			user:   user.Login,
@@ -70,8 +70,8 @@ func TestDBUser_Find(t *testing.T) {
 			defer r.db.Close()
 
 			eq := mock.ExpectQuery(regexp.QuoteMeta(UserFind)).WithArgs(tt.user)
-			if tt.stored.Login != `` {
-				eq.WillReturnRows(sqlmock.NewRows([]string{`password`}).AddRow(tt.stored.Password))
+			if tt.stored.Login != "" {
+				eq.WillReturnRows(sqlmock.NewRows([]string{"password"}).AddRow(tt.stored.Password))
 			} else {
 				eq.WillReturnError(aerror.NewError(aerror.UserFind, sql.ErrNoRows))
 			}
@@ -92,7 +92,7 @@ func TestNewDBUserStorage(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: `Create storage`,
+			name: "Create storage",
 			db:   db,
 			want: DBUser{db},
 		},
@@ -111,7 +111,7 @@ func TestNewDBUserStorage(t *testing.T) {
 func initUserRepo(t *testing.T, init models.User) (DBUser, sqlmock.Sqlmock) {
 	db, mock := getMock(t)
 	r := DBUser{db}
-	if init.Login != `` {
+	if init.Login != "" {
 		addUserExpect(mock, init, false)
 		if err := r.Add(init); err != nil {
 			t.Fatal(err)
@@ -127,6 +127,6 @@ func addUserExpect(mock sqlmock.Sqlmock, user models.User, duplicate bool) {
 	if duplicate {
 		eq.WillReturnError(aerror.NewError(aerror.UserAdd, sql.ErrNoRows))
 	} else {
-		eq.WillReturnRows(sqlmock.NewRows([]string{`name`}).AddRow(user.Login))
+		eq.WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow(user.Login))
 	}
 }

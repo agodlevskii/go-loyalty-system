@@ -5,8 +5,8 @@ import (
 	"github.com/vivekmurali/luhn"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
+	"go-loyalty-system/internal/services"
 	"go-loyalty-system/internal/storage"
-	"go-loyalty-system/internal/utils"
 	"io"
 	"net/http"
 )
@@ -16,10 +16,15 @@ var errToStat = map[string]int{
 	aerror.OrderExistsOtherUser: http.StatusConflict,
 }
 
-func GetOrders(accrualURL string, os storage.OrderStorage, bs storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
+func GetOrders(oStorage storage.OrderStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(models.UserKey).(string)
-		orders, err := os.FindAll(u)
+		u, ok := r.Context().Value(models.UserKey).(string)
+		if !ok {
+			HandleHTTPError(w, aerror.NewError(aerror.UserTokenIncorrect, nil), http.StatusInternalServerError)
+			return
+		}
+
+		orders, err := oStorage.FindAll(u)
 		if err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -30,31 +35,21 @@ func GetOrders(accrualURL string, os storage.OrderStorage, bs storage.BalanceSto
 			return
 		}
 
-		res := make([]models.Order, len(orders))
-		for i, o := range orders {
-			if o.Status == models.StatusNew || o.Status == models.StatusProcessing {
-				upd, err := utils.UpdateOrderWithAccrual(o, os, bs, accrualURL, u)
-				if err != nil {
-					HandleHTTPError(w, err, http.StatusInternalServerError)
-					return
-				}
-
-				res[i] = upd
-			} else {
-				res[i] = o
-			}
-		}
-
-		w.Header().Set(`Content-Type`, `application/json`)
-		if encerr := json.NewEncoder(w).Encode(res); encerr != nil {
+		w.Header().Set("Content-Type", "application/json")
+		if encerr := json.NewEncoder(w).Encode(orders); encerr != nil {
 			HandleHTTPError(w, aerror.NewError(aerror.OrderFindAll, encerr), http.StatusInternalServerError)
 		}
 	}
 }
 
-func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
+func RegisterOrder(accrual services.AccrualClient, oStorage storage.OrderStorage, bStorage storage.BalanceStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(models.UserKey).(string)
+		u, ok := r.Context().Value(models.UserKey).(string)
+		if !ok {
+			HandleHTTPError(w, aerror.NewError(aerror.UserTokenIncorrect, nil), http.StatusInternalServerError)
+			return
+		}
+
 		id, rerr := io.ReadAll(r.Body)
 		if rerr != nil || id == nil || len(id) == 0 {
 			HandleHTTPError(w, aerror.NewError(aerror.OrderNumberInvalid, rerr), http.StatusBadRequest)
@@ -67,7 +62,7 @@ func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.Balanc
 			return
 		}
 
-		if err := utils.CheckExistingOrder(os, order, u); err != nil {
+		if err := services.CheckExistingOrder(oStorage, order, u); err != nil {
 			code, ok := errToStat[err.Label]
 			if !ok {
 				code = http.StatusInternalServerError
@@ -76,12 +71,12 @@ func RegisterOrder(accrualURL string, os storage.OrderStorage, bs storage.Balanc
 			return
 		}
 
-		if _, err := utils.AddOrderFromAccrual(os, bs, accrualURL, order, u); err != nil {
+		if _, err := services.AddOrderFromAccrual(oStorage, bStorage, accrual, order, u); err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		w.Header().Set(`Content-Type`, `application/json`)
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 	}
 }

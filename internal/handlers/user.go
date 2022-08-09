@@ -7,12 +7,11 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"go-loyalty-system/internal/aerror"
+	auth2 "go-loyalty-system/internal/auth"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
-	"go-loyalty-system/internal/utils/auth"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strings"
 )
 
 func Login(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
@@ -29,7 +28,7 @@ func Login(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if equal, err := auth.CompareHashes(reqUser.Password, dbUser.Password); err != nil || !equal {
+		if equal, err := auth2.CompareHashes(reqUser.Password, dbUser.Password); err != nil || !equal {
 			code := http.StatusInternalServerError
 			if err != nil && errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) && !equal {
 				code = http.StatusUnauthorized
@@ -38,10 +37,10 @@ func Login(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if token, err := auth.GetTokenFromUser(reqUser); err != nil {
+		if token, err := auth2.GetTokenFromUser(reqUser); err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 		} else {
-			w.Header().Set(`Authorization`, auth.GetBearer(token))
+			w.Header().Set(`Authorization`, auth2.GetBearer(token))
 			w.Write([]byte(token))
 		}
 	}
@@ -55,7 +54,7 @@ func Register(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		hash, err := auth.HashPassword(reqUser.Password)
+		hash, err := auth2.HashPassword(reqUser.Password)
 		if err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -64,45 +63,38 @@ func Register(db storage.UserStorage) func(http.ResponseWriter, *http.Request) {
 		reqUser.Password = hash
 		if err = db.Add(reqUser); err != nil {
 			code := http.StatusInternalServerError
-			if errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(err, aerror.NewError(aerror.UserAdd, sql.ErrNoRows)) {
 				code = http.StatusConflict
 			}
 			HandleHTTPError(w, err, code)
 			return
 		}
 
-		if token, err := auth.GetTokenFromUser(reqUser); err != nil {
+		if token, err := auth2.GetTokenFromUser(reqUser); err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 		} else {
-			w.Header().Set(`Authorization`, auth.GetBearer(token))
+			w.Header().Set(`Authorization`, auth2.GetBearer(token))
 			w.Write([]byte(token))
 		}
 	}
 }
 
-func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
+func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			for _, path := range excludedPath {
-				if strings.Contains(r.URL.Path, path) {
-					next.ServeHTTP(w, r)
-					return
-				}
-			}
-
 			tknHdr := r.Header.Get(`Authorization`)
-			if tknHdr == `` {
+			if tknHdr == "" {
 				HandleHTTPError(w, aerror.NewError(aerror.UserTokenIncorrect, nil), http.StatusUnauthorized)
 				return
 			}
 
-			tknStr, err := auth.GetTokenFromBearer(tknHdr)
+			tknStr, err := auth2.GetTokenFromBearer(tknHdr)
 			if err != nil {
 				HandleHTTPError(w, err, http.StatusUnauthorized)
 				return
 			}
 
-			if valid, err := auth.IsTokenValid(tknStr); err != nil || !valid {
+			if valid, err := auth2.IsTokenValid(tknStr); err != nil || !valid {
 				code := http.StatusBadRequest
 				if err != nil && errors.Is(err, jwt.ErrSignatureInvalid) || !valid {
 					code = http.StatusUnauthorized
@@ -111,7 +103,7 @@ func AuthMiddleware(excludedPath []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			usr, err := auth.GetUserFromToken(tknStr)
+			usr, err := auth2.GetUserFromToken(tknStr)
 			if err != nil {
 				HandleHTTPError(w, err, http.StatusInternalServerError)
 				return

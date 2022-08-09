@@ -3,10 +3,13 @@ module go-loyalty-system
 go 1.18
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/jackc/pgx/v4 v4.16.1
+	github.com/lib/pq v1.10.2
+	github.com/robfig/cron v1.2.0
 	github.com/stretchr/testify v1.8.0
 	github.com/vivekmurali/luhn v1.0.0
 	go.uber.org/zap v1.21.0
@@ -14,7 +17,6 @@ require (
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect

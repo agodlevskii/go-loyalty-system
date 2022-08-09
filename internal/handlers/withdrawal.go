@@ -8,17 +8,24 @@ import (
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 	"go-loyalty-system/internal/storage"
-	"go-loyalty-system/internal/utils"
 	"net/http"
+	"sync"
 )
+
+var mu = sync.Mutex{}
 
 func GetWithdrawals(db storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		u := r.Context().Value(models.UserKey).(string)
+		u, ok := r.Context().Value(models.UserKey).(string)
+		if !ok {
+			HandleHTTPError(w, aerror.NewError(aerror.UserTokenIncorrect, nil), http.StatusInternalServerError)
+			return
+		}
+
 		ws, err := db.FindAll(u)
 		if err != nil {
 			code := http.StatusInternalServerError
-			if errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(err, aerror.NewError(aerror.WithdrawalFindAll, sql.ErrNoRows)) {
 				code = http.StatusNoContent
 			}
 
@@ -33,10 +40,15 @@ func GetWithdrawals(db storage.WithdrawalStorage) func(http.ResponseWriter, *htt
 	}
 }
 
-func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
+func Withdraw(ws storage.WithdrawalStorage) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var wr models.Withdrawal
-		u := r.Context().Value(models.UserKey).(string)
+		u, ok := r.Context().Value(models.UserKey).(string)
+		if !ok {
+			HandleHTTPError(w, aerror.NewError(aerror.UserTokenIncorrect, nil), http.StatusInternalServerError)
+			return
+		}
+
 		if encerr := json.NewDecoder(r.Body).Decode(&wr); encerr != nil {
 			HandleHTTPError(w, aerror.NewError(aerror.WithdrawalRequestInvalid, encerr), http.StatusBadRequest)
 			return
@@ -47,23 +59,9 @@ func Withdraw(bs storage.BalanceStorage, ws storage.WithdrawalStorage) func(http
 			return
 		}
 
-		b, err := utils.GetBalance(bs, u)
-		if err != nil {
-			HandleHTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		if b.Current < wr.Sum {
-			HandleHTTPError(w, aerror.NewError(aerror.BalanceInsufficient, nil), http.StatusPaymentRequired)
-			return
-		}
-
-		if err = ws.Add(models.NewWithdrawalFromWithdrawal(wr, u)); err != nil {
-			HandleHTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		if _, err = utils.UpdateBalanceWithWithdrawal(bs, b, wr); err != nil {
+		mu.Lock()
+		defer mu.Unlock()
+		if err := ws.Add(models.NewWithdrawalFromWithdrawal(wr, u)); err != nil {
 			HandleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}

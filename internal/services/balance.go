@@ -1,4 +1,4 @@
-package utils
+package services
 
 import (
 	"database/sql"
@@ -17,7 +17,7 @@ func GetBalance(bs storage.BalanceStorage, user string) (models.Balance, *aerror
 	return b, err
 }
 
-func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual float64) (models.Balance, *aerror.AppError) {
+func updateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual float64) (models.Balance, *aerror.AppError) {
 	b, err := bs.Get(user)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		b = models.NewBalance(user)
@@ -26,11 +26,5 @@ func UpdateBalanceWithAccrual(bs storage.BalanceStorage, user string, accrual fl
 	}
 
 	b.Current += accrual
-	return b, bs.Set(b)
-}
-
-func UpdateBalanceWithWithdrawal(bs storage.BalanceStorage, b models.Balance, w models.Withdrawal) (models.Balance, *aerror.AppError) {
-	b.Withdrawn += w.Sum
-	b.Current -= w.Sum
 	return b, bs.Set(b)
 }

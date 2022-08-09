@@ -2,17 +2,18 @@ package storage
 
 import (
 	"database/sql"
-	"errors"
+	"github.com/lib/pq"
 	"go-loyalty-system/internal/aerror"
 	"go-loyalty-system/internal/models"
 )
 
 const (
-	OrderAdd         = `INSERT INTO orders(number, status, accrual, uploaded_at, "user") VALUES($1, $2, $3, $4, $5) ON CONFLICT(number) DO NOTHING RETURNING *`
-	OrderFind        = `SELECT * FROM orders WHERE number = $1`
-	OrderFindAll     = `SELECT * FROM orders WHERE "user" = $1`
-	OrderTableCreate = `CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual REAL, uploaded_at VARCHAR(25), "user" VARCHAR(50), UNIQUE(number))`
-	OrderUpdate      = `UPDATE orders SET status = $1, accrual = $2 WHERE number = $3`
+	OrderAdd               = `INSERT INTO orders(number, status, accrual, uploaded_at, "user") VALUES($1, $2, $3, $4, $5) ON CONFLICT(number) DO NOTHING RETURNING *`
+	OrderFind              = `SELECT * FROM orders WHERE number = $1`
+	OrderFindAll           = `SELECT * FROM orders WHERE "user" = $1`
+	OrderFindAllProcessing = `SELECT * FROM orders WHERE status = any($1)`
+	OrderTableCreate       = `CREATE TABLE IF NOT EXISTS orders (number VARCHAR(25), status VARCHAR(15), accrual REAL, uploaded_at VARCHAR(25), "user" VARCHAR(50), UNIQUE(number))`
+	OrderUpdate            = `UPDATE orders SET status = $1, accrual = $2 WHERE number = $3`
 )
 
 type OrderStorage interface {
@@ -20,6 +21,7 @@ type OrderStorage interface {
 	Update(order models.Order) (models.Order, *aerror.AppError)
 	Find(number string) (models.Order, *aerror.AppError)
 	FindAll(user string) ([]models.Order, *aerror.AppError)
+	FindAllProcessing() ([]models.Order, *aerror.AppError)
 }
 
 type DBOrder struct {
@@ -38,7 +40,7 @@ func (r DBOrder) Add(o models.Order) (models.Order, *aerror.AppError) {
 	var newOrder models.Order
 	err := r.db.QueryRow(OrderAdd, o.Number, o.Status, o.Accrual, o.UploadedAt, o.User).Scan(&newOrder.Number, &newOrder.Status, &newOrder.Accrual, &newOrder.UploadedAt, &newOrder.User)
 	if err != nil {
-		return handleOrderAddFailure(r, o, err)
+		return models.Order{}, aerror.NewError(aerror.OrderAdd, err)
 	}
 	return newOrder, nil
 }
@@ -81,16 +83,23 @@ func (r DBOrder) FindAll(user string) ([]models.Order, *aerror.AppError) {
 	return os, nil
 }
 
-func handleOrderAddFailure(r DBOrder, o models.Order, err error) (models.Order, *aerror.AppError) {
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		if dbOrder, err := r.Find(o.Number); err == nil {
-			if dbOrder.User == o.User {
-				return dbOrder, aerror.NewError(aerror.OrderExistsSameUser, nil)
-			}
-
-			return models.Order{}, aerror.NewError(aerror.OrderExistsOtherUser, nil)
-		}
+func (r DBOrder) FindAllProcessing() ([]models.Order, *aerror.AppError) {
+	os := make([]models.Order, 0)
+	rows, err := r.db.Query(OrderFindAllProcessing, pq.Array([]string{models.StatusNew, models.StatusProcessing}))
+	if err != nil {
+		return nil, aerror.NewError(aerror.OrderFindAllProcessing, err)
+	}
+	if rows.Err() != nil {
+		return nil, aerror.NewError(aerror.OrderFindAllProcessing, rows.Err())
 	}
 
-	return models.Order{}, aerror.NewError(aerror.OrderAdd, err)
+	for rows.Next() {
+		var o models.Order
+		if err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.UploadedAt, &o.User); err != nil {
+			return nil, aerror.NewError(aerror.OrderFindAll, err)
+		}
+		os = append(os, o)
+	}
+
+	return os, nil
 }
